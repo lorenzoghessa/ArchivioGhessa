@@ -32,7 +32,7 @@ function vistaCasa() {
   const viaggi = voci('viaggi', 'viaggio'), prossimo = viaggi.filter(v => v.data > oggi()).sort(perData)[0];
   const prog = voci('progetti', 'progetto');
   const schede = {
-    salute: mis.length ? [dato('Fuori intervallo all\'ultima misura', nFuori, `su ${perPar.length} parametri seguiti`, nFuori ? 'allerta' : ''), dato('Ultimo prelievo', fmtData(ultimoPrelievo), fa(giorniDa(ultimoPrelievo)))] : null,
+    salute: mis.length ? [(ind => (ind ? dato('Indice di salute', `${Math.round(ind.valore)} su 100`, `${fascia(ind.valore).testo}, affidabilità ${ind.affidabilita}`) : null))(indiceSalute()), dato('Fuori intervallo all\'ultima misura', nFuori, `su ${perPar.length} parametri seguiti`, nFuori ? 'allerta' : '')] : null,
     finanze: voci('finanze').length ? [dato('Disponibilità finanziaria', fmtEuro(totaleFinanze(voci('finanze', 'saldo'))))] : null,
     patrimonio: voci('patrimonio').length || voci('finanze', 'saldo').length ? [dato('Patrimonio netto', fmtEuro(patrimonioNetto()), 'beni e disponibilità meno debiti')] : null,
     viaggi: viaggi.length ? [dato('Viaggi registrati', viaggi.length, prossimo ? `Prossimo: ${prossimo.titolo}, ${fmtData(prossimo.data)}` : '')] : null,
@@ -41,6 +41,7 @@ function vistaCasa() {
   return h('div', {},
     h('div', { class: 'testa' }, h('div', {}, h('h1', {}, 'Quadro generale'), h('p', { class: 'sotto' }, new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })))),
     pannello('Da fare', daFare.length ? h('ul', { class: 'elenco' }, daFare.map(x => h('li', {}, h('a', { href: x.href }, stato(x.tipo, x.testo)), h('div', { class: 'elenco-nota' }, x.nota)))) : h('p', { class: 'attenuato' }, 'Niente in sospeso.')),
+    consigliPrincipali(),
     h('div', { class: 'griglia' }, aree().map(a => h('a', { class: 'scheda', href: '#/a/' + a.id }, h('h3', {}, a.nome),
       schede[a.id] || (a.libera && voci(a.id).length ? dato('Voci', voci(a.id).length) : h('p', { class: 'attenuato' }, 'Ancora vuota.'))))),
     pannello('Stato dei caricamenti', h('ul', { class: 'elenco' }, FONTI.map(f => { const st = statoFonte(f); return h('li', {}, h('div', { class: 'tra' }, h('strong', {}, f.nome), stato(st.stato, st.stato === 'ok' ? 'In regola' : st.stato === 'ritardo' ? 'In ritardo' : 'Mai caricati')), h('div', { class: 'elenco-nota' }, st.stato === 'ok' ? st.testo : (st.stato === 'ritardo' ? st.testo + '. ' : '') + f.come)); }))),
@@ -127,6 +128,8 @@ function vistaArea(a) {
   const cr = { salute: cruscottoSalute, finanze: cruscottoFinanze, patrimonio: cruscottoPatrimonio, viaggi: cruscottoViaggi, progetti: cruscottoProgetti }[a.id] || cruscottoLibero;
   return h('div', {},
     h('div', { class: 'testa' }, h('h1', {}, a.nome)),
+    a.id === 'salute' ? pannelloIndice() : null,
+    pannelloConsigli(a.id),
     cr(a),
     a.id === 'progetti' ? null : pannello('Sezioni di questa cartella', h('div', { class: 'sezioni' }, Object.entries(a.tipi).map(([k, d]) => h('div', { class: 'sezione' },
       h('a', { href: `#/a/${a.id}/${k}` }, d.plur), h('span', { class: 'attenuato' }, ` ${voci(a.id, k).length}`), btn('Aggiungi', () => apriModulo(a.id, k), 'piccolo'))))));

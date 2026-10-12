@@ -62,11 +62,15 @@ const TIPO_SCADENZA = { nome: 'Scadenza', plur: 'Scadenze', titolo: v => v.titol
   c('ripeti', 'Si ripete', 'scelta', { opzioni: Object.keys(RIPETI) }), c('stato', 'Stato', 'scelta', { opzioni: ['da fare', 'fatta'] }), c('nota', 'Nota', 'lungo')] };
 const TIPO_LIBERO = { nome: 'Voce', plur: 'Voci', titolo: v => v.titolo, colonne: ['data', 'titolo', 'categoria', 'valore'], campi: [
   c('titolo', 'Titolo', 'testo', { obbl: true }), c('data', 'Data', 'data', { obbl: true }), c('categoria', 'Categoria', 'testo', { suggerisci: true }), c('valore', 'Valore numerico (facoltativo)', 'numero'), c('unita', 'Unità'), c('nota', 'Note', 'lungo')] };
+/* Consigli: presenti in ogni cartella, anche in quelle personalizzate. Li scrive Claude e li mette in ordine; si possono anche aggiungere a mano. */
+const TIPO_CONSIGLIO = { nome: 'Consiglio', plur: 'Consigli', titolo: v => v.titolo, colonne: ['priorita', 'titolo', 'stato', 'data'], campi: [
+  c('titolo', 'Consiglio', 'testo', { obbl: true }), c('data', 'Data', 'data', { obbl: true }), c('priorita', 'Priorità (1 = il più importante)', 'numero'),
+  c('azione', 'Cosa fare', 'lungo'), c('perche', 'Perché, in base ai dati', 'lungo'), c('stato', 'Stato', 'scelta', { opzioni: ['da fare', 'in corso', 'fatto', 'scartato'] }), c('origine', 'Scritto da')] };
 const AREA_SISTEMA = { id: 'sistema', nome: 'Scadenze', tipi: { scadenza: TIPO_SCADENZA } };
 
 function aree() {
   const extra = S.A.aree.filter(a => !a.canc).map(a => ({ id: a.id, nome: a.nome, libera: true, tipi: { voce: TIPO_LIBERO } }));
-  return [...AREE_BASE, ...extra];
+  return [...AREE_BASE, ...extra].map(a => ({ ...a, tipi: { ...a.tipi, consiglio: TIPO_CONSIGLIO } }));
 }
 const area = id => (id === 'sistema' ? AREA_SISTEMA : aree().find(a => a.id === id));
 const tipoDef = (a, t) => (area(a) || { tipi: {} }).tipi[t];

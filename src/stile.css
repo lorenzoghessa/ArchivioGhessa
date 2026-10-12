@@ -100,6 +100,20 @@ td.fuori{color:var(--critico);font-weight:600}
 .segno-fuori{font-size:.7rem}
 .nonspezza{white-space:nowrap} .unita{color:var(--tenue);font-weight:400} td.rif{min-width:9rem;color:var(--inchiostro2)}
 .azioni.stretta{margin:.35rem 0 0}
+.indice-testa{display:flex;gap:1.4rem;align-items:center;flex-wrap:wrap;margin:.4rem 0 1rem}
+.indice-giudizio{font-size:1.05rem;font-weight:600;margin:0 0 .3rem}
+.anello-fondo{fill:none;stroke:var(--linea2);stroke-width:12}
+.anello-valore{fill:none;stroke:var(--ok);stroke-width:12;stroke-linecap:round}
+.anello.vuota .anello-valore{stroke:var(--attenzione)} .anello.ritardo .anello-valore{stroke:var(--critico)}
+.anello-numero{font-family:var(--titoli);font-size:38px;font-weight:600;fill:var(--inchiostro)}
+.anello-unita{font-size:11px;fill:var(--tenue)}
+.componenti{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1rem 2rem}
+.componente .tra{flex-wrap:nowrap}
+.componente .rip-pista{display:block;height:8px;background:var(--linea2);border-radius:4px;margin:.35rem 0 .3rem;overflow:hidden}
+.componente .rip-barra{border-radius:4px;background:var(--ok)}
+.componente .rip-barra.vuota{background:var(--attenzione)} .componente .rip-barra.ritardo{background:var(--critico)}
+.consigli>li{display:grid;grid-template-columns:2rem 1fr;gap:.6rem;align-items:start}
+.consiglio-num{display:grid;place-items:center;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--marca-tenue);color:var(--marca);font-weight:700;font-size:.9rem}
 .md h2{font-size:1.45rem;margin:1.4rem 0 .5rem} .md h3{font-size:1.15rem;margin:1.2rem 0 .4rem} .md h4,.md h5{font-size:1rem;margin:1rem 0 .3rem}
 .md p,.md li{line-height:1.6} .md ul,.md ol{padding-left:1.3rem} .md li{margin:.2rem 0}
 .md code,code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:var(--linea2);border-radius:4px;padding:0 .25rem}
