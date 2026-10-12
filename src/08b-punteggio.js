@@ -27,7 +27,7 @@ function componentiSalute() {
     for (const v of ultimi) { const w = PARAMETRI_CHIAVE.has(v.parametro) ? 3 : 1; tot += w; if (fuoriIntervallo(v)) fuori.push(v.parametro); else ok += w; }
     const ultimo = mis[mis.length - 1].data;
     c.esami = { nome: 'Esami del sangue', punti: (ok / tot) * 100, eta: giorniDa(ultimo),
-      testo: `${plurale(ultimi.length - fuori.length, 'parametro', 'parametri')} su ${ultimi.length} nell'intervallo all'ultima misura` + (fuori.length ? `; fuori: ${fuori.slice(0, 4).join(', ')}${fuori.length > 4 ? '…' : ''}` : '') + `. Ultimo prelievo ${fa(giorniDa(ultimo))}.` };
+      testo: `${plurale(ultimi.length - fuori.length, 'parametro', 'parametri')} su ${ultimi.length} nell'intervallo all'ultima misura` + (fuori.length ? `; fuori: ${fuori.slice(0, 4).join(', ')}${fuori.length > 4 ? ` e altri ${fuori.length - 4}` : ''}` : '') + `. Ultimo prelievo ${fa(giorniDa(ultimo))}.` };
   }
   /* Sonno: media del punteggio del sonno Garmin degli ultimi 14 giorni (almeno 5 notti). */
   const so = mediaRecente('Punteggio del sonno', 14), ore = mediaRecente('Sonno totale', 14);
