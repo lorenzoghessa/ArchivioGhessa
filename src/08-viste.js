@@ -161,6 +161,25 @@ function pannelloSerie(titolo, lista, descrVuoto, azione) {
   mostra(nomi[0]);
   return pannello(titolo, nomi.length > 1 ? h('select', { 'aria-label': 'Metrica', onchange: e => mostra(e.target.value) }, nomi.map(n => h('option', { value: n }, n))) : h('strong', {}, nomi[0]), box);
 }
+/* Sedute per settimana (ultime 12) e massimali: contesto per leggere recupero e sonno, non una valutazione degli esercizi. */
+function lunedi(iso) { const t = tempo(iso), g = (new Date(t).getUTCDay() + 6) % 7, d = new Date(t - g * MS_G); return isoData(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()); }
+function pannelloAllenamenti() {
+  const al = voci('salute', 'allenamento').sort(perData), ma = voci('salute', 'massimale');
+  if (!al.length && !ma.length) return null;
+  const kids = [];
+  if (al.length) {
+    const sett = []; let l = lunedi(al[0].data); const fine = lunedi(oggi());
+    while (l <= fine) { sett.push(l); l = isoData(...((d) => [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()])(new Date(tempo(l) + 7 * MS_G))); }
+    const ultime = sett.slice(-12);
+    const serie = [{ nome: 'Serie eseguite', classe: 'g-barra1', valori: ultime.map(s => somma(al.filter(v => lunedi(v.data) === s).map(v => v.serie))) }];
+    kids.push(h('div', { class: 'dati' }, dato('Sedute nelle ultime 4 settimane', al.filter(v => giorniDa(v.data) < 28).length), dato('Ultima seduta', fmtData(al[al.length - 1].data), al[al.length - 1].scheda)),
+      serie[0].valori.some(x => x > 0) ? [grafico('Serie eseguite per settimana', w => graficoBarre(w, { categorie: ultime.map(s => fmtData(s).replace(/ \d{4}$/, '')), serie, alto: 160 })),
+        h('p', { class: 'attenuato piccolo' }, 'Serie eseguite per settimana, dalla scheda. I valori non segnati sono stimati secondo le tue regole e indicati nella seduta.')] : null,
+      tabella('salute', 'allenamento', al, { limite: 6, filtro: false }));
+  }
+  if (ma.length) kids.push(h('h3', {}, 'Massimali'), tabella('salute', 'massimale', ma, { filtro: false }));
+  return pannello('Allenamenti', kids);
+}
 function cruscottoSalute() {
   const mis = voci('salute', 'misura').sort(perData);
   const gruppi = [...raggruppa(mis, v => v.parametro).values()];
@@ -181,6 +200,7 @@ function cruscottoSalute() {
     pannelloSerie('Dati del dispositivo', voci('salute', 'sensore'), 'Nessun dato del dispositivo. Arrivano da soli ogni notte una volta attivato lo scaricamento Garmin (Impostazioni). In alternativa puoi importare un CSV.', btn('Importa CSV', () => apriImportaCsv('salute', 'sensore'))),
     pannelloSerie('Peso e misure', voci('salute', 'corpo'), 'Nessuna misura del corpo registrata.', btn('Aggiungi misura', () => apriModulo('salute', 'corpo'), 'primario')),
     visite.length ? pannello('Visite e referti', tabella('salute', 'visita', visite, { limite: 6, filtro: false })) : null,
+    pannelloAllenamenti(),
   ];
 }
 

@@ -79,6 +79,7 @@ function cella(def, v, k) {
   if (k === 'valore' && typeof x !== 'number' && v.testo && def.campi.some(q => q.k === 'testo' && q.tipo === 'testo')) return v.testo;
   if (k === 'rif_testo') return testoRif(v);
   if (x == null || x === '') return '';
+  if (f.tipo === 'si_no') return x ? 'sì' : '';
   if (f.tipo === 'data') return fmtData(x);
   if (f.tipo === 'numero') return f.euro ? fmtEuro(x) : fmtNum(x, 3);
   const t = String(x); return t.length > 90 ? t.slice(0, 88) + '…' : t;

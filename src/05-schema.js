@@ -19,6 +19,13 @@ const AREE_BASE = [
       c('data', 'Data', 'data', { obbl: true }), c('metrica', 'Metrica', 'testo', { obbl: true, suggerisci: true }), c('valore', 'Valore', 'numero', { obbl: true }), c('unita', 'Unità'), c('fonte', 'Dispositivo', 'testo', { suggerisci: true })] },
     corpo: { nome: 'Misura del corpo', plur: 'Peso e misure', titolo: v => v.metrica, colonne: ['data', 'metrica', 'valore', 'unita'], largo: 'metrica', campi: [
       c('data', 'Data', 'data', { obbl: true }), c('metrica', 'Misura', 'testo', { obbl: true, suggerisci: true, esempi: ['Peso', 'Massa grassa', 'Massa magra', 'Circonferenza vita', 'Pressione sistolica', 'Pressione diastolica'] }), c('valore', 'Valore', 'numero', { obbl: true }), c('unita', 'Unità')] },
+    allenamento: { nome: 'Seduta di allenamento', plur: 'Allenamenti', titolo: v => v.seduta || v.scheda, colonne: ['data', 'scheda', 'seduta', 'serie', 'stimato'], campi: [
+      c('data', 'Data', 'data', { obbl: true }), c('scheda', 'Scheda', 'testo', { obbl: true, suggerisci: true }), c('settimana', 'Settimana della scheda', 'numero'), c('seduta', 'Seduta', 'testo'),
+      c('serie', 'Serie eseguite', 'numero'), c('dettaglio', 'Esercizi (serie × ripetizioni @RPE, carico)', 'lungo'), c('stimato', 'Valori stimati', 'si_no'), c('stime', 'Cosa è stimato', 'lungo'),
+      c('data_stimata', 'Data stimata dai giorni abituali', 'si_no'), c('doc', 'Scheda di origine', 'allegato'), c('nota', 'Nota', 'lungo')] },
+    massimale: { nome: 'Massimale', plur: 'Massimali', titolo: v => v.esercizio, colonne: ['data', 'esercizio', 'valore', 'nota'], campi: [
+      c('data', 'Data', 'data', { obbl: true }), c('esercizio', 'Esercizio', 'testo', { obbl: true, suggerisci: true, esempi: ['Dip', 'Chin up', 'Squat', 'Panca piana', 'Stacco'] }),
+      c('valore', 'Chili (per dip e trazioni: zavorra)', 'numero', { obbl: true }), c('ripetizioni', 'Ripetizioni', 'numero'), c('data_stimata', 'Data approssimata', 'si_no'), c('nota', 'Nota', 'lungo')] },
     osservazione: { nome: 'Osservazione', plur: 'Osservazioni e piano', titolo: v => v.titolo, colonne: ['data', 'titolo', 'priorita', 'stato'], campi: [
       c('data', 'Data', 'data', { obbl: true }), c('titolo', 'Titolo', 'testo', { obbl: true }), c('testo', 'Testo', 'lungo'), c('priorita', 'Priorità', 'scelta', { opzioni: ['alta', 'media', 'bassa'] }),
       c('stato', 'Stato', 'scelta', { opzioni: ['aperta', 'in corso', 'chiusa'] }), c('origine', 'Scritta da')] },
@@ -71,6 +78,7 @@ const FONTI = [
   { id: 'referti', nome: 'Esami e referti', area: 'salute', tipi: ['misura', 'visita'], giorni: 200, come: 'Carica il PDF in Documenti o mandalo a Claude in chat: i valori li inserisce lui.' },
   { id: 'dispositivo', nome: 'Dati del dispositivo (Garmin)', area: 'salute', tipi: ['sensore'], giorni: 3, come: 'Arrivano da soli ogni notte da Garmin Connect. Se sono fermi, guarda lo stato in Impostazioni.' },
   { id: 'corpo', nome: 'Peso e pressione', area: 'salute', tipi: ['corpo'], giorni: 35, come: 'Registrali nell\'app Garmin Connect (arrivano da soli) oppure aggiungili qui in Salute.' },
+  { id: 'allenamenti', nome: 'Schede di allenamento', area: 'salute', tipi: ['allenamento'], giorni: 21, come: 'Carica il file Excel della scheda in Documenti o mandalo a Claude: le sedute le ricava lui.' },
   { id: 'saldi', nome: 'Saldi dei conti', area: 'finanze', tipi: ['saldo'], giorni: 35, come: 'Aggiungi il saldo di ogni conto in Finanze.' },
 ];
 function statoFonte(f) {

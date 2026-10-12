@@ -41,6 +41,8 @@ def repo_iniziale():
              {"id": "m-1", "area": "salute", "tipo": "misura", "persona": "mario", "data": "2026-01-10", "categoria": "Rene", "parametro": "Creatinina", "valore": 1.3, "unita": "mg/dL", "rif_min": 0.7, "rif_max": 1.2, "fuori": True, "laboratorio": "Lab A", "doc": "d-1", "creato": T, "agg": T},
              {"id": "m-2", "area": "salute", "tipo": "misura", "persona": "mario", "data": "2026-05-10", "categoria": "Rene", "parametro": "Creatinina", "valore": 1.1, "unita": "mg/dL", "rif_min": 0.7, "rif_max": 1.2, "laboratorio": "Lab A", "creato": T, "agg": T},
              {"id": "m-3", "area": "salute", "tipo": "misura", "persona": "mario", "data": "2026-05-10", "categoria": "Lipidi", "parametro": "Colesterolo LDL", "valore": 160, "unita": "mg/dL", "rif_max": 115, "creato": T, "agg": T},
+             {"id": "a-1", "area": "salute", "tipo": "allenamento", "persona": "mario", "data": (oggi - dt.timedelta(days=3)).isoformat(), "scheda": "Scheda prova", "seduta": "Sessione 1", "serie": 18, "dettaglio": "Squat 5×5 @8, 100 kg", "stimato": True, "creato": T, "agg": T},
+             {"id": "x-1", "area": "salute", "tipo": "massimale", "persona": "mario", "data": "2026-05-01", "esercizio": "Squat", "valore": 140, "creato": T, "agg": T},
              {"id": "o-1", "area": "salute", "tipo": "osservazione", "persona": "mario", "data": "2026-05-11", "titolo": "LDL alto", "testo": "Da discutere col medico.", "priorita": "alta", "stato": "aperta", "creato": T, "agg": T},
          ],
          "allegati": [{"id": "d-1", "nome": "referto.pdf", "mime": "application/pdf", "dim": 20, "area": "salute", "persona": "mario", "data": "2026-01-10", "stato": "elaborato", "file": "documenti/d-1.pdf", "creato": T, "agg": T}],
@@ -150,7 +152,7 @@ async def main():
         await A.click("text=Collega e apri")
         await A.wait_for_selector("h1:has-text('Quadro generale')")
         await A.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await A.evaluate("S.A.voci.length") == 4, "archivio scaricato dal repository")
+        controlla(await A.evaluate("S.A.voci.length") == 6, "archivio scaricato dal repository")
         controlla(await A.evaluate("S.estVoci.length") == 21, "dati Garmin letti dal repository (21 righe)")
         controlla(await A.locator("text=Rapporto di settembre 2026").count() > 0, "ultimo rapporto in prima pagina")
         controlla(await A.locator("text=Scaricamento Garmin non ancora attivo").count() == 0, "Garmin risulta attivo")
@@ -161,6 +163,8 @@ async def main():
         await A.wait_for_timeout(300)
         await scatta(A, "03-salute")
         controlla(await A.locator("section:has(h2:has-text('Dati del dispositivo')) .grafico svg").count() == 1, "grafico dei dati Garmin")
+        sez = A.locator("section:has(h2:has-text('Allenamenti'))")
+        controlla(await sez.locator(".grafico svg").count() == 1 and await sez.locator("td:has-text('Scheda prova')").count() == 1 and await sez.locator("td:has-text('140')").count() == 1 and await sez.locator("td:has-text('sì')").count() == 1, "allenamenti: grafico, sedute e massimali")
         await A.goto(URL + "#/a/salute/sensore")
         await A.click("tbody tr >> nth=0")
         controlla(await A.locator("#modale").count() == 0 and await A.locator(".avviso:has-text('Garmin Connect')").count() == 1, "un dato Garmin non si modifica dalla pagina")
@@ -204,7 +208,7 @@ async def main():
         await collega(B)
         await B.wait_for_selector("#vista")
         await B.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 6, "il telefono vede gli stessi dati")
+        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 8, "il telefono vede gli stessi dati")
         await B.evaluate("metti({area:'salute',tipo:'corpo',persona:'mario',data:'2026-10-07',metrica:'Pressione sistolica',valore:120,unita:'mmHg'})")
         await A.evaluate("metti({area:'viaggi',tipo:'viaggio',persona:'mario',data:'2027-04-01',titolo:'Tokyo'})")
         await A.evaluate("togli('voci','o-1')")

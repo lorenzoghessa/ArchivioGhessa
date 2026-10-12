@@ -845,6 +845,13 @@ const AREE_BASE = [
       c('data', 'Data', 'data', { obbl: true }), c('metrica', 'Metrica', 'testo', { obbl: true, suggerisci: true }), c('valore', 'Valore', 'numero', { obbl: true }), c('unita', 'Unità'), c('fonte', 'Dispositivo', 'testo', { suggerisci: true })] },
     corpo: { nome: 'Misura del corpo', plur: 'Peso e misure', titolo: v => v.metrica, colonne: ['data', 'metrica', 'valore', 'unita'], largo: 'metrica', campi: [
       c('data', 'Data', 'data', { obbl: true }), c('metrica', 'Misura', 'testo', { obbl: true, suggerisci: true, esempi: ['Peso', 'Massa grassa', 'Massa magra', 'Circonferenza vita', 'Pressione sistolica', 'Pressione diastolica'] }), c('valore', 'Valore', 'numero', { obbl: true }), c('unita', 'Unità')] },
+    allenamento: { nome: 'Seduta di allenamento', plur: 'Allenamenti', titolo: v => v.seduta || v.scheda, colonne: ['data', 'scheda', 'seduta', 'serie', 'stimato'], campi: [
+      c('data', 'Data', 'data', { obbl: true }), c('scheda', 'Scheda', 'testo', { obbl: true, suggerisci: true }), c('settimana', 'Settimana della scheda', 'numero'), c('seduta', 'Seduta', 'testo'),
+      c('serie', 'Serie eseguite', 'numero'), c('dettaglio', 'Esercizi (serie × ripetizioni @RPE, carico)', 'lungo'), c('stimato', 'Valori stimati', 'si_no'), c('stime', 'Cosa è stimato', 'lungo'),
+      c('data_stimata', 'Data stimata dai giorni abituali', 'si_no'), c('doc', 'Scheda di origine', 'allegato'), c('nota', 'Nota', 'lungo')] },
+    massimale: { nome: 'Massimale', plur: 'Massimali', titolo: v => v.esercizio, colonne: ['data', 'esercizio', 'valore', 'nota'], campi: [
+      c('data', 'Data', 'data', { obbl: true }), c('esercizio', 'Esercizio', 'testo', { obbl: true, suggerisci: true, esempi: ['Dip', 'Chin up', 'Squat', 'Panca piana', 'Stacco'] }),
+      c('valore', 'Chili (per dip e trazioni: zavorra)', 'numero', { obbl: true }), c('ripetizioni', 'Ripetizioni', 'numero'), c('data_stimata', 'Data approssimata', 'si_no'), c('nota', 'Nota', 'lungo')] },
     osservazione: { nome: 'Osservazione', plur: 'Osservazioni e piano', titolo: v => v.titolo, colonne: ['data', 'titolo', 'priorita', 'stato'], campi: [
       c('data', 'Data', 'data', { obbl: true }), c('titolo', 'Titolo', 'testo', { obbl: true }), c('testo', 'Testo', 'lungo'), c('priorita', 'Priorità', 'scelta', { opzioni: ['alta', 'media', 'bassa'] }),
       c('stato', 'Stato', 'scelta', { opzioni: ['aperta', 'in corso', 'chiusa'] }), c('origine', 'Scritta da')] },
@@ -897,6 +904,7 @@ const FONTI = [
   { id: 'referti', nome: 'Esami e referti', area: 'salute', tipi: ['misura', 'visita'], giorni: 200, come: 'Carica il PDF in Documenti o mandalo a Claude in chat: i valori li inserisce lui.' },
   { id: 'dispositivo', nome: 'Dati del dispositivo (Garmin)', area: 'salute', tipi: ['sensore'], giorni: 3, come: 'Arrivano da soli ogni notte da Garmin Connect. Se sono fermi, guarda lo stato in Impostazioni.' },
   { id: 'corpo', nome: 'Peso e pressione', area: 'salute', tipi: ['corpo'], giorni: 35, come: 'Registrali nell\'app Garmin Connect (arrivano da soli) oppure aggiungili qui in Salute.' },
+  { id: 'allenamenti', nome: 'Schede di allenamento', area: 'salute', tipi: ['allenamento'], giorni: 21, come: 'Carica il file Excel della scheda in Documenti o mandalo a Claude: le sedute le ricava lui.' },
   { id: 'saldi', nome: 'Saldi dei conti', area: 'finanze', tipi: ['saldo'], giorni: 35, come: 'Aggiungi il saldo di ogni conto in Finanze.' },
 ];
 function statoFonte(f) {
@@ -1127,6 +1135,7 @@ function cella(def, v, k) {
   if (k === 'valore' && typeof x !== 'number' && v.testo && def.campi.some(q => q.k === 'testo' && q.tipo === 'testo')) return v.testo;
   if (k === 'rif_testo') return testoRif(v);
   if (x == null || x === '') return '';
+  if (f.tipo === 'si_no') return x ? 'sì' : '';
   if (f.tipo === 'data') return fmtData(x);
   if (f.tipo === 'numero') return f.euro ? fmtEuro(x) : fmtNum(x, 3);
   const t = String(x); return t.length > 90 ? t.slice(0, 88) + '…' : t;
@@ -1466,6 +1475,25 @@ function pannelloSerie(titolo, lista, descrVuoto, azione) {
   mostra(nomi[0]);
   return pannello(titolo, nomi.length > 1 ? h('select', { 'aria-label': 'Metrica', onchange: e => mostra(e.target.value) }, nomi.map(n => h('option', { value: n }, n))) : h('strong', {}, nomi[0]), box);
 }
+/* Sedute per settimana (ultime 12) e massimali: contesto per leggere recupero e sonno, non una valutazione degli esercizi. */
+function lunedi(iso) { const t = tempo(iso), g = (new Date(t).getUTCDay() + 6) % 7, d = new Date(t - g * MS_G); return isoData(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()); }
+function pannelloAllenamenti() {
+  const al = voci('salute', 'allenamento').sort(perData), ma = voci('salute', 'massimale');
+  if (!al.length && !ma.length) return null;
+  const kids = [];
+  if (al.length) {
+    const sett = []; let l = lunedi(al[0].data); const fine = lunedi(oggi());
+    while (l <= fine) { sett.push(l); l = isoData(...((d) => [d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()])(new Date(tempo(l) + 7 * MS_G))); }
+    const ultime = sett.slice(-12);
+    const serie = [{ nome: 'Serie eseguite', classe: 'g-barra1', valori: ultime.map(s => somma(al.filter(v => lunedi(v.data) === s).map(v => v.serie))) }];
+    kids.push(h('div', { class: 'dati' }, dato('Sedute nelle ultime 4 settimane', al.filter(v => giorniDa(v.data) < 28).length), dato('Ultima seduta', fmtData(al[al.length - 1].data), al[al.length - 1].scheda)),
+      serie[0].valori.some(x => x > 0) ? [grafico('Serie eseguite per settimana', w => graficoBarre(w, { categorie: ultime.map(s => fmtData(s).replace(/ \d{4}$/, '')), serie, alto: 160 })),
+        h('p', { class: 'attenuato piccolo' }, 'Serie eseguite per settimana, dalla scheda. I valori non segnati sono stimati secondo le tue regole e indicati nella seduta.')] : null,
+      tabella('salute', 'allenamento', al, { limite: 6, filtro: false }));
+  }
+  if (ma.length) kids.push(h('h3', {}, 'Massimali'), tabella('salute', 'massimale', ma, { filtro: false }));
+  return pannello('Allenamenti', kids);
+}
 function cruscottoSalute() {
   const mis = voci('salute', 'misura').sort(perData);
   const gruppi = [...raggruppa(mis, v => v.parametro).values()];
@@ -1486,6 +1514,7 @@ function cruscottoSalute() {
     pannelloSerie('Dati del dispositivo', voci('salute', 'sensore'), 'Nessun dato del dispositivo. Arrivano da soli ogni notte una volta attivato lo scaricamento Garmin (Impostazioni). In alternativa puoi importare un CSV.', btn('Importa CSV', () => apriImportaCsv('salute', 'sensore'))),
     pannelloSerie('Peso e misure', voci('salute', 'corpo'), 'Nessuna misura del corpo registrata.', btn('Aggiungi misura', () => apriModulo('salute', 'corpo'), 'primario')),
     visite.length ? pannello('Visite e referti', tabella('salute', 'visita', visite, { limite: 6, filtro: false })) : null,
+    pannelloAllenamenti(),
   ];
 }
 
