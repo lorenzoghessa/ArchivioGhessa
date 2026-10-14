@@ -31,7 +31,9 @@ function vistaCasa() {
   const ultimoPrelievo = mis.length ? mis[mis.length - 1].data : null;
   const viaggi = voci('viaggi', 'viaggio'), prossimo = viaggi.filter(v => v.data > oggi()).sort(perData)[0];
   const prog = voci('progetti', 'progetto');
+  const lav = incassiLavoro(), attesi = voci('lavoro', 'incasso').filter(v => v.stato !== 'incassato');
   const schede = {
+    lavoro: lav.mesi.length || attesi.length ? [lav.mesi.length ? dato('Incassi da lavoro', fmtEuro(lav.totale), `media ${fmtEuro(lav.media)} al mese`) : null, attesi.length ? dato('Incassi attesi', fmtEuro(somma(attesi.map(v => v.valore)))) : null] : null,
     salute: mis.length ? [(ind => (ind ? dato('Indice di salute', `${Math.round(ind.valore)} su 100`, `${fascia(ind.valore).testo}, affidabilità ${ind.affidabilita}`) : null))(indiceSalute()), dato('Fuori intervallo all\'ultima misura', nFuori, `su ${perPar.length} parametri seguiti`, nFuori ? 'allerta' : '')] : null,
     finanze: voci('finanze').length ? [dato('Disponibilità finanziaria', fmtEuro(totaleFinanze(voci('finanze', 'saldo'))))] : null,
     patrimonio: voci('patrimonio').length || voci('finanze', 'saldo').length ? [dato('Patrimonio netto', fmtEuro(patrimonioNetto()), 'beni e disponibilità meno debiti')] : null,
@@ -125,10 +127,10 @@ function vistaRapporti(scelto) {
 }
 
 function vistaArea(a) {
-  const cr = { salute: cruscottoSalute, finanze: cruscottoFinanze, patrimonio: cruscottoPatrimonio, viaggi: cruscottoViaggi, progetti: cruscottoProgetti }[a.id] || cruscottoLibero;
+  const cr = { salute: cruscottoSalute, finanze: cruscottoFinanze, patrimonio: cruscottoPatrimonio, lavoro: cruscottoLavoro, viaggi: cruscottoViaggi, progetti: cruscottoProgetti }[a.id] || cruscottoLibero;
   return h('div', {},
     h('div', { class: 'testa' }, h('h1', {}, a.nome)),
-    a.id === 'salute' ? pannelloIndice() : null,
+    a.id === 'salute' ? pannelloIndice() : a.id === 'finanze' ? quadroFinanze() : null,
     pannelloConsigli(a.id),
     cr(a),
     a.id === 'progetti' ? null : pannello('Sezioni di questa cartella', h('div', { class: 'sezioni' }, Object.entries(a.tipi).map(([k, d]) => h('div', { class: 'sezione' },
@@ -208,25 +210,79 @@ function cruscottoSalute() {
 }
 
 /* --- Finanze --- */
+/* Quadro in testa alla cartella: ogni conto, investimento, bene e debito con il suo valore, raggruppati per classe.
+   Colori delle classi in ordine fisso (--c1...--c6, verificati per daltonismo); i debiti restano in grigio. */
+const CLASSI_FIN = [
+  { id: 'conti', nome: 'Conti correnti' }, { id: 'risparmio', nome: 'Risparmio' }, { id: 'investimenti', nome: 'Investimenti' },
+  { id: 'previdenza', nome: 'Previdenza' }, { id: 'immobili', nome: 'Immobili' }, { id: 'beni', nome: 'Altri beni' },
+];
+const OBIETTIVO_FONDO_MESI = 3; /* traguardo dichiarato in obiettivo-del-progetto.md */
+const classeSaldo = v => ({ Risparmio: 'risparmio', Investimenti: 'investimenti', Previdenza: 'previdenza' }[v.categoria] || 'conti');
+const classeBene = v => (v.categoria === 'Immobile' ? 'immobili' : v.categoria === 'Quote societarie' ? 'investimenti' : 'beni');
+function posizioniFinanze() {
+  const out = [], ultimi = new Map();
+  for (const v of voci('finanze', 'saldo').sort(perData)) ultimi.set((v.persona || '') + '|' + v.conto, v);
+  for (const v of ultimi.values()) {
+    const debito = v.categoria === 'Debito';
+    out.push({ v, area: 'finanze', tipo: 'saldo', nome: v.conto, classe: debito ? 'debiti' : classeSaldo(v), valore: debito ? -Math.abs(v.valore) : v.valore, nota: v.nota || `al ${fmtData(v.data)}` });
+  }
+  for (const v of voci('patrimonio', 'bene')) out.push({ v, area: 'patrimonio', tipo: 'bene', nome: v.titolo, classe: classeBene(v), valore: v.valore, nota: v.nota || (v.data ? `stima del ${fmtData(v.data)}` : '') });
+  for (const v of voci('patrimonio', 'debito')) out.push({ v, area: 'patrimonio', tipo: 'debito', nome: v.titolo, classe: 'debiti', valore: -Math.abs(v.valore), nota: v.rata ? `rata ${fmtEuro(v.rata)} al mese` + (v.scadenza ? `, fino al ${fmtData(v.scadenza)}` : '') : (v.nota || '') });
+  return out;
+}
+/* Uscite medie al mese, tasse escluse, dai totali mensili dei movimenti (ultimi 12 mesi con dati). */
+function usciteMedie() {
+  const mov = voci('finanze', 'movimento'), mesi = [...new Set(mov.map(v => v.data.slice(0, 7)))].sort().slice(-12);
+  if (!mesi.length) return null;
+  const tot = -somma(mov.filter(v => v.valore < 0 && mesi.includes(v.data.slice(0, 7)) && !/^Tasse/.test(v.categoria || '')).map(v => v.valore));
+  return { media: tot / mesi.length, mesi: mesi.length };
+}
+function quadroFinanze() {
+  const pos = posizioniFinanze();
+  if (!pos.length) return null;
+  const tot = id => somma(pos.filter(p => p.classe === id).map(p => p.valore));
+  const attivi = CLASSI_FIN.map((c, i) => ({ ...c, n: i + 1, valore: tot(c.id) })).filter(c => c.valore > 0);
+  const lordo = somma(attivi.map(c => c.valore)), debiti = -tot('debiti'), netto = lordo - debiti;
+  const liquido = tot('conti') + tot('risparmio'), investito = tot('investimenti') + tot('previdenza');
+  const um = usciteMedie(), fondo = tot('risparmio');
+  const mesiFondo = um && um.media > 0 ? fondo / um.media : null;
+  const ordine = [...CLASSI_FIN.map(c => c.id), 'debiti'];
+  const nomeClasse = id => (CLASSI_FIN.find(c => c.id === id) || { nome: 'Debiti' }).nome;
+  const carta = p => h('div', { class: 'conto c' + (ordine.indexOf(p.classe) + 1), tabindex: 0, role: 'button', onclick: () => apriModulo(p.area, p.tipo, p.v), onkeydown: e => { if (e.key === 'Enter') apriModulo(p.area, p.tipo, p.v); } },
+    h('div', { class: 'conto-classe' }, nomeClasse(p.classe)), h('div', { class: 'conto-nome' }, p.nome), h('div', { class: 'conto-valore num' }, fmtEuro(p.valore)), p.nota ? h('div', { class: 'conto-nota' }, p.nota) : null);
+  const ordinate = [...pos].sort((a, b) => ordine.indexOf(a.classe) - ordine.indexOf(b.classe) || Math.abs(b.valore) - Math.abs(a.valore));
+  const quota = x => { const q = lordo ? (x / lordo) * 100 : 0; return fmtNum(q, q > 0 && q < 1 ? 1 : 0) + '%'; };
+  return h('section', { class: 'pannello quadro' },
+    h('div', { class: 'dati' },
+      dato('Patrimonio netto', fmtEuro(netto), 'tutto ciò che hai meno i debiti', 'grande'),
+      dato('Liquidità', fmtEuro(liquido), 'conti correnti e risparmio'),
+      dato('Investito', fmtEuro(investito), 'investimenti e previdenza'),
+      debiti ? dato('Debiti', fmtEuro(-debiti), `${quota(debiti)} di quanto possiedi`) : null),
+    lordo > 0 ? [
+      h('div', { class: 'composizione', role: 'img', 'aria-label': 'Composizione di quanto possiedi: ' + attivi.map(c => `${c.nome} ${quota(c.valore)}`).join(', ') },
+        attivi.map(c => h('span', { class: 'c' + c.n, style: `flex-grow:${c.valore}`, title: `${c.nome}: ${quota(c.valore)}` }))),
+      h('ul', { class: 'legenda-classi' }, attivi.map(c => h('li', {}, h('i', { class: 'chiave c' + c.n, 'aria-hidden': 'true' }), h('span', {}, c.nome), h('span', { class: 'num' }, fmtEuro(c.valore)), h('span', { class: 'attenuato num' }, quota(c.valore))))),
+    ] : null,
+    mesiFondo != null && fondo > 0 ? h('p', { class: 'fondo' }, stato(mesiFondo >= OBIETTIVO_FONDO_MESI ? 'ok' : 'ritardo', `Il fondo di emergenza copre ${fmtNum(mesiFondo, 1)} ${fmtNum(mesiFondo, 1) === '1' ? 'mese' : 'mesi'} di uscite`),
+      h('span', { class: 'attenuato piccolo' }, ` Obiettivo ${OBIETTIVO_FONDO_MESI} mesi. Uscite medie ${fmtEuro(um.media)} al mese, tasse escluse, sugli ultimi ${um.mesi} mesi.`)) : null,
+    h('div', { class: 'conti-griglia' }, ordinate.map(carta)),
+    h('p', { class: 'attenuato piccolo' }, 'Ultimo valore noto di ogni voce, con la sua fonte. Tocca una voce per correggerla. Il pulsante con l\'occhio in alto a destra nasconde gli importi.'));
+}
 function cruscottoFinanze() {
   const saldi = voci('finanze', 'saldo').sort(perData), mov = voci('finanze', 'movimento');
   if (!saldi.length && !mov.length) return pannello('', vuoto('Cartella vuota. Parti dai saldi: una riga per conto, una volta al mese. I movimenti si possono importare dal CSV della banca.', btn('Aggiungi un saldo', () => apriModulo('finanze', 'saldo'), 'primario'), btn('Importa movimenti', () => apriImportaCsv('finanze', 'movimento'))));
   const date = [...new Set(saldi.map(v => v.data))];
   const serie = date.map(d => ({ data: d, y: totaleFinanze(saldi.filter(v => v.data <= d)) }));
-  const ultimi = new Map(); for (const v of saldi) ultimi.set(v.conto, v);
   const mesi = []; { const o = oggi(); let y = +o.slice(0, 4), m = +o.slice(5, 7); for (let i = 0; i < 12; i++) { mesi.unshift(`${y}-${String(m).padStart(2, '0')}`); if (--m < 1) { m = 12; y--; } } }
   const entrate = mesi.map(k => somma(mov.filter(v => v.data.startsWith(k) && v.valore > 0).map(v => v.valore)));
   const uscite = mesi.map(k => -somma(mov.filter(v => v.data.startsWith(k) && v.valore < 0).map(v => v.valore)));
   const perCat = [...raggruppa(mov.filter(v => v.valore < 0 && v.data >= mesi[0]), v => v.categoria || 'Senza categoria')].map(([nome, l]) => ({ nome, valore: -somma(l.map(v => v.valore)) })).sort((a, b) => b.valore - a.valore).slice(0, 8);
   const serieBarre = [{ nome: 'Entrate', classe: 'g-barra1', valori: entrate }, { nome: 'Uscite', classe: 'g-barra2', valori: uscite }];
   return [
-    h('div', { class: 'dati' },
-      saldi.length ? dato('Disponibilità finanziaria', fmtEuro(serie[serie.length - 1].y), serie.length > 1 ? `${serie[serie.length - 1].y >= serie[0].y ? '+' : ''}${fmtEuro(serie[serie.length - 1].y - serie[0].y)} dal ${fmtData(serie[0].data)}` : `al ${fmtData(serie[0].data)}`) : null,
-      mov.length ? dato('Entrate negli ultimi 12 mesi', fmtEuro(somma(entrate))) : null, mov.length ? dato('Uscite negli ultimi 12 mesi', fmtEuro(somma(uscite)), `risparmio ${fmtEuro(somma(entrate) - somma(uscite))}`) : null),
-    saldi.length ? pannello('Disponibilità nel tempo', grafico('Disponibilità finanziaria nel tempo', w => graficoLinea(w, { punti: serie, unita: '€', fmt: v => fmtNum(v, 0) })), h('p', { class: 'attenuato piccolo' }, 'Somma dell\'ultimo saldo noto di ogni conto a ciascuna data. I conti di tipo Debito sono sottratti.')) : null,
-    saldi.length ? pannello('Dove sono i soldi oggi', barreOrizzontali([...ultimi.values()].map(v => ({ nome: v.conto, valore: segnoSaldo(v) })).sort((a, b) => b.valore - a.valore), fmtEuro)) : null,
-    mov.length ? pannello('Entrate e uscite per mese', legenda(serieBarre), grafico('Entrate e uscite per mese', w => graficoBarre(w, { categorie: mesi.map(fmtMese), serie: serieBarre, fmt: v => fmtNum(v, 0) }))) : null,
+    mov.length ? pannello('Entrate e uscite', h('div', { class: 'dati' }, dato('Entrate negli ultimi 12 mesi', fmtEuro(somma(entrate))), dato('Uscite negli ultimi 12 mesi', fmtEuro(somma(uscite)), `risparmio ${fmtEuro(somma(entrate) - somma(uscite))}`)),
+      legenda(serieBarre), grafico('Entrate e uscite per mese', w => graficoBarre(w, { categorie: mesi.map(fmtMese), serie: serieBarre, fmt: v => fmtNum(v, 0) }), { soldi: true })) : null,
     perCat.length ? pannello('Uscite per categoria negli ultimi 12 mesi', barreOrizzontali(perCat, fmtEuro)) : null,
+    date.length > 1 ? pannello('Disponibilità nel tempo', grafico('Disponibilità finanziaria nel tempo', w => graficoLinea(w, { punti: serie, unita: '€', fmt: v => fmtNum(v, 0) }), { soldi: true }), h('p', { class: 'attenuato piccolo' }, 'Somma dell\'ultimo saldo noto di ogni conto a ciascuna data, beni e mutuo esclusi. Un conto entra nella linea dalla data del suo primo saldo: un salto può essere il suo ingresso, non un guadagno.')) : null,
   ];
 }
 
@@ -242,6 +298,40 @@ function cruscottoPatrimonio() {
     pannello('Composizione', barreOrizzontali(perTipo.sort((a, b) => b.valore - a.valore), fmtEuro)),
     beni.length ? pannello('Beni', tabella('patrimonio', 'bene', beni, { filtro: false })) : null,
     debiti.length ? pannello('Debiti', tabella('patrimonio', 'debito', debiti, { filtro: false })) : null,
+  ];
+}
+
+/* --- Lavoro ---
+   Per ora: incassi da lavoro presi dai totali mensili dei conti (le voci di finanze/movimento con il campo "lavoro",
+   che dice la fonte), incassi attesi e attività. Il resto lo decide il titolare: ogni tipo nuovo si aggiunge in 05-schema.js.
+   Colori delle fonti in ordine fisso, per nome. */
+function incassiLavoro() {
+  const mov = voci('finanze', 'movimento').filter(v => v.lavoro);
+  const mesi = [...new Set(mov.map(v => v.data.slice(0, 7)))].sort().slice(-12);
+  const fonti = [...new Set(mov.map(v => v.lavoro))].sort();
+  const serie = fonti.map((nome, i) => ({ nome, classe: 'g-barra' + Math.min(i + 1, 6), valori: mesi.map(m => somma(mov.filter(v => v.lavoro === nome && v.data.startsWith(m)).map(v => v.valore))) })).filter(f => f.valori.some(x => x));
+  const totale = somma(serie.flatMap(f => f.valori));
+  return { mesi, serie, totale, media: mesi.length ? totale / mesi.length : 0 };
+}
+function cruscottoLavoro(a) {
+  const inc = incassiLavoro(), att = voci('lavoro', 'attivita'), incassi = voci('lavoro', 'incasso').sort(perData);
+  const attesi = incassi.filter(v => v.stato !== 'incassato');
+  const voceAttesa = v => { const g = giorniDa(v.data); return h('li', { class: 'cliccabile', tabindex: 0, onclick: () => apriModulo('lavoro', 'incasso', v), onkeydown: e => { if (e.key === 'Enter') apriModulo('lavoro', 'incasso', v); } },
+    h('div', { class: 'tra' }, h('strong', {}, v.descrizione && v.committente && v.descrizione.includes(v.committente) ? v.descrizione : [v.committente, v.descrizione].filter(Boolean).join(': ')), h('span', { class: 'num' }, fmtEuro(v.valore))),
+    h('div', { class: 'elenco-nota' }, stato(g > 30 ? 'ritardo' : 'vuota', g > 30 ? `In ritardo: atteso dal ${fmtData(v.data)}` : `Atteso dal ${fmtData(v.data)}`), v.nota ? h('span', { class: 'attenuato' }, ' ' + v.nota) : null)); };
+  return [
+    h('p', { class: 'sotto largo-testo introduzione' }, 'Per ora mostra gli incassi presi dagli estratti conto. Cosa seguire qui lo decidi tu: chiedilo a Claude in chat e la cartella si allarga.'),
+    inc.mesi.length || attesi.length ? h('div', { class: 'dati' },
+      inc.mesi.length ? dato('Incassi da lavoro', fmtEuro(inc.totale), `${inc.mesi.length === 1 ? 'nell\'ultimo mese' : `negli ultimi ${inc.mesi.length} mesi`} con estratto`) : null,
+      inc.mesi.length ? dato('Media al mese', fmtEuro(inc.media), 'per mese di incasso') : null,
+      attesi.length ? dato('Incassi attesi', fmtEuro(somma(attesi.map(v => v.valore))), attesi.length === 1 ? '1 da ricevere' : `${attesi.length} da ricevere`, attesi.some(v => giorniDa(v.data) > 30) ? 'allerta' : '') : null) : null,
+    inc.serie.length ? pannello('Incassi per mese e per fonte', legenda(inc.serie),
+      grafico('Incassi da lavoro per mese e per fonte', w => graficoBarre(w, { categorie: inc.mesi.map(fmtMese), serie: inc.serie, fmt: v => fmtNum(v, 0) }), { soldi: true }),
+      h('p', { class: 'attenuato piccolo' }, 'Dai conti, per mese di incasso: una fattura incassata in un mese può essere del lavoro del mese prima. Importi di quanto arriva sul conto.')) : null,
+    pannello('Incassi attesi', attesi.length ? h('ul', { class: 'elenco' }, attesi.map(voceAttesa)) : h('p', { class: 'attenuato' }, 'Nessun incasso in attesa.'),
+      h('div', { class: 'azioni' }, btn('Aggiungi un incasso atteso', () => apriModulo('lavoro', 'incasso', null, { stato: 'atteso' }), 'piccolo'))),
+    pannello('Attività e partite IVA', att.length ? tabella('lavoro', 'attivita', att, { filtro: false }) : h('p', { class: 'attenuato' }, 'Ancora nessuna attività registrata: partite IVA, società, holding, collaborazioni.'),
+      h('div', { class: 'azioni' }, btn('Aggiungi un\'attività', () => apriModulo('lavoro', 'attivita', null, { stato: 'attiva' }), 'piccolo'))),
   ];
 }
 

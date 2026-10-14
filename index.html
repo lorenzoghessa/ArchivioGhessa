@@ -8,11 +8,12 @@
 <meta name="theme-color" content="#0d5c57">
 <title>Archivio</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230d5c57'/%3E%3Cpath d='M18 46V22a4 4 0 0 1 4-4h8l4 5h8a4 4 0 0 1 4 4v19a4 4 0 0 1-4 4H22a4 4 0 0 1-4-4z' fill='%23fff'/%3E%3C/svg%3E">
-<!-- Versione costruita il 2026-10-12. Sorgenti e formato dei dati: vedi LEGGIMI.md -->
+<!-- Versione costruita il 2026-10-14. Sorgenti e formato dei dati: vedi LEGGIMI.md -->
 <style>
 :root{
   --fondo:#e9eeec; --carta:#ffffff; --inchiostro:#12211f; --inchiostro2:#465955; --tenue:#6f807c; --linea:#d5dedb; --linea2:#e6ecea;
   --marca:#0d5c57; --marca-su:#ffffff; --marca-tenue:#dcebe8; --serie:#2a78d6; --serie2:#eb6834;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300;
   --ok:#0a7d0a; --attenzione:#8a5a00; --critico:#c0302f; --critico-tenue:#fbeaea; --attenzione-tenue:#fdf3d9;
   --titoli:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --testo:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -21,6 +22,7 @@
 @media (prefers-color-scheme:dark){:root{
   --fondo:#0e1514; --carta:#172120; --inchiostro:#eef4f2; --inchiostro2:#bccac6; --tenue:#8c9c98; --linea:#2b3937; --linea2:#212d2b;
   --marca:#5fc0b8; --marca-su:#04201d; --marca-tenue:#1d3330; --serie:#3987e5; --serie2:#d95926;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
   --ok:#3fc13f; --attenzione:#f0b429; --critico:#f07a79; --critico-tenue:#3a1e1e; --attenzione-tenue:#3a2f12;
   color-scheme:dark;
 }}
@@ -47,6 +49,7 @@ a{color:var(--marca)}
 .marchio.grande{font-size:2.1rem;margin-bottom:.3rem}
 .spazio{flex:1}
 .chi,.chi-solo{font-size:.92rem;color:var(--inchiostro2)}
+.chi-solo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .menu{padding:.5rem 0 2rem 1rem;display:flex;flex-direction:column;gap:2px}
 .menu a{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.55rem .9rem;color:var(--inchiostro2);text-decoration:none;border-radius:10px 0 0 10px;border:1px solid transparent;border-right:0}
 .menu a:hover{color:var(--inchiostro);background:var(--linea2)}
@@ -173,17 +176,45 @@ legend{font-size:.88rem;color:var(--inchiostro2);padding:0 .3rem}
 .g-fuori,.g-punto-fuori{fill:var(--critico);stroke:var(--carta);stroke-width:2}
 .g-banda{fill:var(--serie);opacity:.11}
 .g-cursore{stroke:var(--tenue);stroke-width:1;stroke-dasharray:3 3}
-.g-barra1{fill:var(--serie)} .g-barra2{fill:var(--serie2)}
+.g-barra1{fill:var(--serie)} .g-barra2{fill:var(--serie2)} .g-barra3{fill:var(--c3)} .g-barra4{fill:var(--c4)} .g-barra5{fill:var(--c5)} .g-barra6{fill:var(--c6)}
 .g-fumetto{position:absolute;pointer-events:none;background:var(--inchiostro);color:var(--carta);border-radius:8px;padding:.4rem .6rem;font-size:.82rem;line-height:1.35;white-space:nowrap;z-index:5}
 .g-f-titolo{opacity:.75} .g-f-forte{font-weight:700;font-size:.95rem}
-.legenda{display:flex;gap:1rem;font-size:.86rem;color:var(--inchiostro2);margin:.2rem 0 .4rem}
+.legenda{display:flex;flex-wrap:wrap;gap:.2rem 1rem;font-size:.86rem;color:var(--inchiostro2);margin:.2rem 0 .4rem}
+.legenda span{white-space:nowrap}
 .chiave{display:inline-block;width:.75rem;height:.75rem;border-radius:3px;margin-right:.35rem;vertical-align:-1px}
-i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)}
+i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)} i.g-barra3{background:var(--c3)} i.g-barra4{background:var(--c4)} i.g-barra5{background:var(--c5)} i.g-barra6{background:var(--c6)}
 .scintilla{display:block}
 .ripartizione{display:grid;gap:.45rem;margin:.5rem 0}
 .rip-riga{display:grid;grid-template-columns:minmax(90px,200px) 1fr auto;gap:.8rem;align-items:center;font-size:.93rem}
 .rip-pista{height:12px}
 .rip-barra{display:block;height:100%;background:var(--serie);border-radius:0 4px 4px 0;min-width:3px}
+
+/* quadro delle finanze: classi in colori fissi, verificati per daltonismo (chiari e scuri); i debiti in grigio */
+.c1{--c:var(--c1)} .c2{--c:var(--c2)} .c3{--c:var(--c3)} .c4{--c:var(--c4)} .c5{--c:var(--c5)} .c6{--c:var(--c6)} .c7{--c:var(--tenue)}
+.dato.grande .dato-valore{font-size:2.3rem}
+.composizione{display:flex;gap:2px;height:14px;margin:1.1rem 0 .55rem;border-radius:4px;overflow:hidden}
+.composizione span{display:block;background:var(--c);flex-basis:0;min-width:3px}
+.legenda-classi{list-style:none;margin:0 0 .4rem;padding:0;display:flex;flex-wrap:wrap;gap:.3rem 1.4rem;font-size:.9rem}
+.legenda-classi li{display:flex;align-items:center;gap:.45rem}
+.legenda-classi .chiave{background:var(--c);margin:0}
+.fondo{margin:.7rem 0 .2rem}
+.conti-griglia{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.55rem;margin:1rem 0 .4rem}
+.conto-classe{font-size:.75rem;color:var(--tenue);text-transform:uppercase;letter-spacing:.04em}
+.introduzione{margin-bottom:1rem}
+.conto{border:1px solid var(--linea);border-left:4px solid var(--c);border-radius:10px;padding:.55rem .8rem .6rem;cursor:pointer;background:var(--carta);min-width:0}
+.conto:hover{border-color:var(--marca);border-left-color:var(--c)}
+.conto-nome{font-size:.9rem;color:var(--inchiostro2);overflow-wrap:anywhere}
+.conto-valore{font-family:var(--titoli);font-size:1.4rem;line-height:1.25}
+.conto-nota{font-size:.8rem;color:var(--tenue);overflow-wrap:anywhere}
+
+/* importi riservati: il pulsante con l'occhio sfoca ogni cifra in euro, su ogni pagina */
+.occhio{display:inline-flex;align-items:center;gap:.4rem}
+.occhio svg{width:1.15rem;height:1.15rem;flex:none}
+.occhio.attivo{background:var(--marca-tenue);color:var(--marca)}
+.riservato .soldi{display:inline-block;filter:blur(.42em);user-select:none}
+.riservato input.soldi{filter:blur(5px)}
+.riservato .grafico-soldi .g-y{visibility:hidden}
+.riservato .grafico-soldi .g-fumetto{filter:blur(5px)}
 
 .blocco{min-height:100vh;display:grid;place-items:center;padding:20px}
 .blocco-scheda{background:var(--carta);border:1px solid var(--linea);border-radius:16px;padding:1.8rem;width:min(460px,100%)}
@@ -206,6 +237,13 @@ i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)}
   .solo-largo{display:none}
   .barra{gap:.4rem}
   .spia-testo{display:none} .spia::before{margin-right:0}
+  .occhio-testo{display:none}
+  .dato.grande .dato-valore{font-size:2rem}
+  .quadro .dati{display:grid;grid-template-columns:1fr 1fr;gap:.7rem 1rem}
+  .quadro .dato.grande{grid-column:1/-1}
+  .quadro .dato-valore{font-size:1.45rem}
+  .conti-griglia{grid-template-columns:1fr 1fr}
+  .conto-valore{font-size:1.15rem}
   td.rif{min-width:7rem}
   .rip-riga{grid-template-columns:minmax(70px,110px) 1fr auto}
 }
@@ -884,6 +922,14 @@ const AREE_BASE = [
       c('titolo', 'Nome', 'testo', { obbl: true }), c('categoria', 'Tipo', 'scelta', { opzioni: ['Mutuo', 'Finanziamento', 'Leasing', 'Altro'] }), c('valore', 'Residuo in euro', 'numero', { obbl: true, euro: true }),
       c('data', 'Data del residuo', 'data'), c('rata', 'Rata mensile in euro', 'numero', { euro: true }), c('scadenza', 'Fine prevista', 'data'), c('nota', 'Nota', 'lungo')] },
   } },
+  { id: 'lavoro', nome: 'Lavoro', tipi: {
+    incasso: { nome: 'Incasso', plur: 'Incassi attesi e ricevuti', titolo: v => v.descrizione || v.committente, colonne: ['data', 'committente', 'descrizione', 'valore', 'stato'], campi: [
+      c('data', 'Data prevista o di incasso', 'data', { obbl: true }), c('committente', 'Da chi', 'testo', { obbl: true, suggerisci: true, esempi: ['Pazienti privati'] }), c('descrizione', 'Descrizione'),
+      c('competenza', 'Mese di competenza (AAAA-MM)'), c('valore', 'Importo in euro', 'numero', { obbl: true, euro: true }), c('stato', 'Stato', 'scelta', { opzioni: ['atteso', 'incassato'] }), c('nota', 'Nota', 'lungo')] },
+    attivita: { nome: 'Attività', plur: 'Attività e partite IVA', titolo: v => v.titolo, colonne: ['titolo', 'forma', 'ruolo', 'stato'], campi: [
+      c('titolo', 'Nome', 'testo', { obbl: true }), c('forma', 'Forma', 'scelta', { opzioni: ['Partita IVA', 'Società', 'Holding', 'Collaborazione', 'Altro'] }), c('ruolo', 'Il tuo ruolo'),
+      c('data', 'Attiva dal', 'data'), c('stato', 'Stato', 'scelta', { opzioni: ['attiva', 'in avvio', 'chiusa'] }), c('nota', 'Note', 'lungo')] },
+  } },
   { id: 'viaggi', nome: 'Viaggi ed esperienze', tipi: {
     viaggio: { nome: 'Viaggio', plur: 'Viaggi', titolo: v => v.titolo, colonne: ['data', 'titolo', 'luogo', 'con', 'voto'], campi: [
       c('titolo', 'Titolo', 'testo', { obbl: true }), c('luogo', 'Luogo', 'testo'), c('paese', 'Paese', 'testo', { suggerisci: true }), c('data', 'Partenza', 'data', { obbl: true }), c('fine', 'Rientro', 'data'),
@@ -953,8 +999,9 @@ function prossimaData(iso, ripeti) {
 }
 
 /* ===== 6. Grafici (SVG disegnato a mano, nessuna libreria esterna) ===== */
-function grafico(descrizione, disegnaFn) {
-  const box = h('div', { class: 'grafico', role: 'img', 'aria-label': descrizione });
+/* opzioni.soldi: il grafico mostra importi, che il pulsante "Nascondi importi" deve coprire (scala verticale e fumetto). */
+function grafico(descrizione, disegnaFn, opzioni = {}) {
+  const box = h('div', { class: 'grafico' + (opzioni.soldi ? ' grafico-soldi' : ''), role: 'img', 'aria-label': descrizione });
   const ro = new ResizeObserver(() => {
     const w = Math.floor(box.clientWidth);
     if (w > 0 && w !== box._w) { box._w = w; box.replaceChildren(...disegnaFn(w)); }
@@ -998,7 +1045,7 @@ function graficoLinea(w, { punti, banda, unita, alto = 210, fmt = v => fmtNum(v,
     svg.append(s('rect', { class: 'g-banda', x: m.s, y: su, width: pw, height: Math.max(0, giu - su) }));
   }
   for (const v of tacche(y0, y1)) {
-    svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
+    svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse g-y', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
   }
   const etichetteX = w > 460 && punti.length > 2 ? [x0, (x0 + x1) / 2, x1] : [x0, x1];
   etichetteX.forEach((t, i) => svg.append(s('text', { class: 'g-asse', x: X(t), y: alto - 6, 'text-anchor': i === 0 ? 'start' : i === etichetteX.length - 1 ? 'end' : 'middle' }, fx.format(new Date(t)))));
@@ -1032,7 +1079,7 @@ function graficoBarre(w, { categorie, serie, fmt = v => fmtNum(v, 0), alto = 200
   const m = { s: Math.max(40, 14 + 6.6 * Math.max(...tk.map(v => fmt(v).length))), d: 8, a: 10, b: 26 }, pw = w - m.s - m.d, ph = alto - m.a - m.b;
   const Y = v => m.a + (1 - v / tetto) * ph;
   const svg = s('svg', { width: w, height: alto, viewBox: `0 0 ${w} ${alto}` });
-  for (const v of tk) svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
+  for (const v of tk) svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse g-y', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
   const gw = pw / categorie.length, bw = Math.max(2, Math.min(22, (gw - 8) / serie.length - 2));
   const ogni = Math.ceil(categorie.length / Math.max(1, Math.floor(pw / 56)));
   const f = fumetto();
@@ -1101,7 +1148,7 @@ function controllo(f, v, idArea, idTipo) {
   const base = { name: f.k, id: 'f-' + f.k, required: !!f.obbl };
   if (f.tipo === 'lungo') return h('textarea', { ...base, rows: 4 }, val || '');
   if (f.tipo === 'data') return h('input', { ...base, type: 'date', value: val || '' });
-  if (f.tipo === 'numero') return h('input', { ...base, type: 'text', inputmode: 'decimal', value: val == null ? '' : String(val).replace('.', ','), autocomplete: 'off' });
+  if (f.tipo === 'numero') return h('input', { ...base, type: 'text', inputmode: 'decimal', value: val == null ? '' : String(val).replace('.', ','), autocomplete: 'off', class: f.euro ? 'soldi' : null });
   if (f.tipo === 'si_no') return h('input', { ...base, type: 'checkbox', checked: !!val });
   if (f.tipo === 'scelta') return h('select', base, h('option', { value: '' }, ''), f.opzioni.map(o => h('option', { value: o, selected: o === val }, o)));
   if (f.tipo === 'allegato') return h('select', base, h('option', { value: '' }, 'Nessuno'), S.A.allegati.filter(a => !a.canc).map(a => h('option', { value: a.id, selected: a.id === val }, `${a.nome} (${fmtData(a.data)})`)));
@@ -1302,7 +1349,7 @@ function barra() {
   return h('header', { class: 'barra' },
     h('a', { class: 'marchio', href: '#/' }, 'Archivio'),
     pp.length > 1 ? h('select', { class: 'chi', 'aria-label': 'Persona', onchange: e => { S.persona = e.target.value; disegna(); } }, h('option', { value: '' }, 'Tutta la famiglia'), pp.map(p => h('option', { value: p.id, selected: p.id === S.persona }, p.nome))) : h('span', { class: 'chi-solo' }, (pp[0] || {}).nome || ''),
-    h('span', { class: 'spazio' }), spiaSync(), btn('Blocca', blocca, 'piatto'));
+    h('span', { class: 'spazio' }), spiaSync(), btn('Blocca', blocca, 'piatto'), pulsanteRiservato());
 }
 function disegna() {
   const app = $('#app');
@@ -1329,6 +1376,52 @@ function vistaPer(r) {
   return vuoto('Pagina non trovata.');
 }
 window.addEventListener('hashchange', () => { chiudiModale(); disegna(); });
+
+/* ===== 7b. Importi riservati =====
+   Un pulsante in alto a destra, uguale su ogni pagina, sfoca tutte le cifre in euro: utile quando la pagina
+   si mostra ad altri. Ogni testo che entra nella pagina passa da marcaSoldi, così non serve ricordarsene
+   nelle singole viste. I grafici di importi si dichiarano con grafico(..., { soldi: true }).
+   La scelta vale per questo dispositivo e resta anche dopo il blocco. */
+const CHIAVE_RISERVATO = 'archivio-riservato';
+const RE_SOLDI = /[-−+]?\d{1,3}(?:\.\d{3})*(?:,\d+)?\s?€/g;
+const NON_TOCCARE = 'option, select, textarea, script, style, svg, title, .soldi';
+const riservato = () => document.documentElement.classList.contains('riservato');
+
+function marcaSoldi(radice) {
+  if (!radice || !(radice.nodeType === 1 || radice.nodeType === 11)) return;
+  const w = document.createTreeWalker(radice, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => (n.nodeValue.includes('€') && n.parentElement && !n.parentElement.closest(NON_TOCCARE) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
+  });
+  const nodi = []; while (w.nextNode()) nodi.push(w.currentNode);
+  for (const n of nodi) {
+    const t = n.nodeValue; let ultimo = 0, m, pezzi = [];
+    RE_SOLDI.lastIndex = 0;
+    while ((m = RE_SOLDI.exec(t))) { pezzi.push(t.slice(ultimo, m.index), h('span', { class: 'soldi' }, m[0])); ultimo = RE_SOLDI.lastIndex; }
+    if (!pezzi.length) continue;
+    pezzi.push(t.slice(ultimo));
+    n.replaceWith(...pezzi.filter(p => p !== ''));
+  }
+}
+new MutationObserver(l => { for (const r of l) for (const n of r.addedNodes) marcaSoldi(n.nodeType === 3 ? n.parentElement : n); })
+  .observe(document.body, { childList: true, subtree: true });
+
+function impostaRiservato(si) {
+  document.documentElement.classList.toggle('riservato', si);
+  try { if (si) localStorage.setItem(CHIAVE_RISERVATO, '1'); else localStorage.removeItem(CHIAVE_RISERVATO); } catch (e) { /* memoria del browser non disponibile: vale fino alla chiusura */ }
+  const b = $('#riservato'); if (b) b.replaceWith(pulsanteRiservato());
+}
+try { if (localStorage.getItem(CHIAVE_RISERVATO)) document.documentElement.classList.add('riservato'); } catch (e) { /* idem */ }
+
+function iconaOcchio(chiuso) {
+  return s('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', fill: 'none', stroke: 'currentColor', 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' },
+    s('path', { d: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z' }), s('circle', { cx: 12, cy: 12, r: 3 }),
+    chiuso ? s('path', { d: 'M3 3l18 18' }) : null);
+}
+function pulsanteRiservato() {
+  const si = riservato(), testo = si ? 'Mostra gli importi' : 'Nascondi gli importi';
+  return h('button', { id: 'riservato', type: 'button', class: 'btn piatto occhio' + (si ? ' attivo' : ''), 'aria-pressed': si ? 'true' : 'false', 'aria-label': testo, title: testo, onclick: () => impostaRiservato(!riservato()) },
+    iconaOcchio(si), h('span', { class: 'occhio-testo' }, si ? 'Importi nascosti' : 'Nascondi importi'));
+}
 
 /* ===== 8. Viste: quadro generale e cruscotti delle cartelle ===== */
 const segnoSaldo = v => (v.categoria === 'Debito' ? -Math.abs(v.valore) : v.valore);
@@ -1363,7 +1456,9 @@ function vistaCasa() {
   const ultimoPrelievo = mis.length ? mis[mis.length - 1].data : null;
   const viaggi = voci('viaggi', 'viaggio'), prossimo = viaggi.filter(v => v.data > oggi()).sort(perData)[0];
   const prog = voci('progetti', 'progetto');
+  const lav = incassiLavoro(), attesi = voci('lavoro', 'incasso').filter(v => v.stato !== 'incassato');
   const schede = {
+    lavoro: lav.mesi.length || attesi.length ? [lav.mesi.length ? dato('Incassi da lavoro', fmtEuro(lav.totale), `media ${fmtEuro(lav.media)} al mese`) : null, attesi.length ? dato('Incassi attesi', fmtEuro(somma(attesi.map(v => v.valore)))) : null] : null,
     salute: mis.length ? [(ind => (ind ? dato('Indice di salute', `${Math.round(ind.valore)} su 100`, `${fascia(ind.valore).testo}, affidabilità ${ind.affidabilita}`) : null))(indiceSalute()), dato('Fuori intervallo all\'ultima misura', nFuori, `su ${perPar.length} parametri seguiti`, nFuori ? 'allerta' : '')] : null,
     finanze: voci('finanze').length ? [dato('Disponibilità finanziaria', fmtEuro(totaleFinanze(voci('finanze', 'saldo'))))] : null,
     patrimonio: voci('patrimonio').length || voci('finanze', 'saldo').length ? [dato('Patrimonio netto', fmtEuro(patrimonioNetto()), 'beni e disponibilità meno debiti')] : null,
@@ -1457,10 +1552,10 @@ function vistaRapporti(scelto) {
 }
 
 function vistaArea(a) {
-  const cr = { salute: cruscottoSalute, finanze: cruscottoFinanze, patrimonio: cruscottoPatrimonio, viaggi: cruscottoViaggi, progetti: cruscottoProgetti }[a.id] || cruscottoLibero;
+  const cr = { salute: cruscottoSalute, finanze: cruscottoFinanze, patrimonio: cruscottoPatrimonio, lavoro: cruscottoLavoro, viaggi: cruscottoViaggi, progetti: cruscottoProgetti }[a.id] || cruscottoLibero;
   return h('div', {},
     h('div', { class: 'testa' }, h('h1', {}, a.nome)),
-    a.id === 'salute' ? pannelloIndice() : null,
+    a.id === 'salute' ? pannelloIndice() : a.id === 'finanze' ? quadroFinanze() : null,
     pannelloConsigli(a.id),
     cr(a),
     a.id === 'progetti' ? null : pannello('Sezioni di questa cartella', h('div', { class: 'sezioni' }, Object.entries(a.tipi).map(([k, d]) => h('div', { class: 'sezione' },
@@ -1540,25 +1635,79 @@ function cruscottoSalute() {
 }
 
 /* --- Finanze --- */
+/* Quadro in testa alla cartella: ogni conto, investimento, bene e debito con il suo valore, raggruppati per classe.
+   Colori delle classi in ordine fisso (--c1...--c6, verificati per daltonismo); i debiti restano in grigio. */
+const CLASSI_FIN = [
+  { id: 'conti', nome: 'Conti correnti' }, { id: 'risparmio', nome: 'Risparmio' }, { id: 'investimenti', nome: 'Investimenti' },
+  { id: 'previdenza', nome: 'Previdenza' }, { id: 'immobili', nome: 'Immobili' }, { id: 'beni', nome: 'Altri beni' },
+];
+const OBIETTIVO_FONDO_MESI = 3; /* traguardo dichiarato in obiettivo-del-progetto.md */
+const classeSaldo = v => ({ Risparmio: 'risparmio', Investimenti: 'investimenti', Previdenza: 'previdenza' }[v.categoria] || 'conti');
+const classeBene = v => (v.categoria === 'Immobile' ? 'immobili' : v.categoria === 'Quote societarie' ? 'investimenti' : 'beni');
+function posizioniFinanze() {
+  const out = [], ultimi = new Map();
+  for (const v of voci('finanze', 'saldo').sort(perData)) ultimi.set((v.persona || '') + '|' + v.conto, v);
+  for (const v of ultimi.values()) {
+    const debito = v.categoria === 'Debito';
+    out.push({ v, area: 'finanze', tipo: 'saldo', nome: v.conto, classe: debito ? 'debiti' : classeSaldo(v), valore: debito ? -Math.abs(v.valore) : v.valore, nota: v.nota || `al ${fmtData(v.data)}` });
+  }
+  for (const v of voci('patrimonio', 'bene')) out.push({ v, area: 'patrimonio', tipo: 'bene', nome: v.titolo, classe: classeBene(v), valore: v.valore, nota: v.nota || (v.data ? `stima del ${fmtData(v.data)}` : '') });
+  for (const v of voci('patrimonio', 'debito')) out.push({ v, area: 'patrimonio', tipo: 'debito', nome: v.titolo, classe: 'debiti', valore: -Math.abs(v.valore), nota: v.rata ? `rata ${fmtEuro(v.rata)} al mese` + (v.scadenza ? `, fino al ${fmtData(v.scadenza)}` : '') : (v.nota || '') });
+  return out;
+}
+/* Uscite medie al mese, tasse escluse, dai totali mensili dei movimenti (ultimi 12 mesi con dati). */
+function usciteMedie() {
+  const mov = voci('finanze', 'movimento'), mesi = [...new Set(mov.map(v => v.data.slice(0, 7)))].sort().slice(-12);
+  if (!mesi.length) return null;
+  const tot = -somma(mov.filter(v => v.valore < 0 && mesi.includes(v.data.slice(0, 7)) && !/^Tasse/.test(v.categoria || '')).map(v => v.valore));
+  return { media: tot / mesi.length, mesi: mesi.length };
+}
+function quadroFinanze() {
+  const pos = posizioniFinanze();
+  if (!pos.length) return null;
+  const tot = id => somma(pos.filter(p => p.classe === id).map(p => p.valore));
+  const attivi = CLASSI_FIN.map((c, i) => ({ ...c, n: i + 1, valore: tot(c.id) })).filter(c => c.valore > 0);
+  const lordo = somma(attivi.map(c => c.valore)), debiti = -tot('debiti'), netto = lordo - debiti;
+  const liquido = tot('conti') + tot('risparmio'), investito = tot('investimenti') + tot('previdenza');
+  const um = usciteMedie(), fondo = tot('risparmio');
+  const mesiFondo = um && um.media > 0 ? fondo / um.media : null;
+  const ordine = [...CLASSI_FIN.map(c => c.id), 'debiti'];
+  const nomeClasse = id => (CLASSI_FIN.find(c => c.id === id) || { nome: 'Debiti' }).nome;
+  const carta = p => h('div', { class: 'conto c' + (ordine.indexOf(p.classe) + 1), tabindex: 0, role: 'button', onclick: () => apriModulo(p.area, p.tipo, p.v), onkeydown: e => { if (e.key === 'Enter') apriModulo(p.area, p.tipo, p.v); } },
+    h('div', { class: 'conto-classe' }, nomeClasse(p.classe)), h('div', { class: 'conto-nome' }, p.nome), h('div', { class: 'conto-valore num' }, fmtEuro(p.valore)), p.nota ? h('div', { class: 'conto-nota' }, p.nota) : null);
+  const ordinate = [...pos].sort((a, b) => ordine.indexOf(a.classe) - ordine.indexOf(b.classe) || Math.abs(b.valore) - Math.abs(a.valore));
+  const quota = x => { const q = lordo ? (x / lordo) * 100 : 0; return fmtNum(q, q > 0 && q < 1 ? 1 : 0) + '%'; };
+  return h('section', { class: 'pannello quadro' },
+    h('div', { class: 'dati' },
+      dato('Patrimonio netto', fmtEuro(netto), 'tutto ciò che hai meno i debiti', 'grande'),
+      dato('Liquidità', fmtEuro(liquido), 'conti correnti e risparmio'),
+      dato('Investito', fmtEuro(investito), 'investimenti e previdenza'),
+      debiti ? dato('Debiti', fmtEuro(-debiti), `${quota(debiti)} di quanto possiedi`) : null),
+    lordo > 0 ? [
+      h('div', { class: 'composizione', role: 'img', 'aria-label': 'Composizione di quanto possiedi: ' + attivi.map(c => `${c.nome} ${quota(c.valore)}`).join(', ') },
+        attivi.map(c => h('span', { class: 'c' + c.n, style: `flex-grow:${c.valore}`, title: `${c.nome}: ${quota(c.valore)}` }))),
+      h('ul', { class: 'legenda-classi' }, attivi.map(c => h('li', {}, h('i', { class: 'chiave c' + c.n, 'aria-hidden': 'true' }), h('span', {}, c.nome), h('span', { class: 'num' }, fmtEuro(c.valore)), h('span', { class: 'attenuato num' }, quota(c.valore))))),
+    ] : null,
+    mesiFondo != null && fondo > 0 ? h('p', { class: 'fondo' }, stato(mesiFondo >= OBIETTIVO_FONDO_MESI ? 'ok' : 'ritardo', `Il fondo di emergenza copre ${fmtNum(mesiFondo, 1)} ${fmtNum(mesiFondo, 1) === '1' ? 'mese' : 'mesi'} di uscite`),
+      h('span', { class: 'attenuato piccolo' }, ` Obiettivo ${OBIETTIVO_FONDO_MESI} mesi. Uscite medie ${fmtEuro(um.media)} al mese, tasse escluse, sugli ultimi ${um.mesi} mesi.`)) : null,
+    h('div', { class: 'conti-griglia' }, ordinate.map(carta)),
+    h('p', { class: 'attenuato piccolo' }, 'Ultimo valore noto di ogni voce, con la sua fonte. Tocca una voce per correggerla. Il pulsante con l\'occhio in alto a destra nasconde gli importi.'));
+}
 function cruscottoFinanze() {
   const saldi = voci('finanze', 'saldo').sort(perData), mov = voci('finanze', 'movimento');
   if (!saldi.length && !mov.length) return pannello('', vuoto('Cartella vuota. Parti dai saldi: una riga per conto, una volta al mese. I movimenti si possono importare dal CSV della banca.', btn('Aggiungi un saldo', () => apriModulo('finanze', 'saldo'), 'primario'), btn('Importa movimenti', () => apriImportaCsv('finanze', 'movimento'))));
   const date = [...new Set(saldi.map(v => v.data))];
   const serie = date.map(d => ({ data: d, y: totaleFinanze(saldi.filter(v => v.data <= d)) }));
-  const ultimi = new Map(); for (const v of saldi) ultimi.set(v.conto, v);
   const mesi = []; { const o = oggi(); let y = +o.slice(0, 4), m = +o.slice(5, 7); for (let i = 0; i < 12; i++) { mesi.unshift(`${y}-${String(m).padStart(2, '0')}`); if (--m < 1) { m = 12; y--; } } }
   const entrate = mesi.map(k => somma(mov.filter(v => v.data.startsWith(k) && v.valore > 0).map(v => v.valore)));
   const uscite = mesi.map(k => -somma(mov.filter(v => v.data.startsWith(k) && v.valore < 0).map(v => v.valore)));
   const perCat = [...raggruppa(mov.filter(v => v.valore < 0 && v.data >= mesi[0]), v => v.categoria || 'Senza categoria')].map(([nome, l]) => ({ nome, valore: -somma(l.map(v => v.valore)) })).sort((a, b) => b.valore - a.valore).slice(0, 8);
   const serieBarre = [{ nome: 'Entrate', classe: 'g-barra1', valori: entrate }, { nome: 'Uscite', classe: 'g-barra2', valori: uscite }];
   return [
-    h('div', { class: 'dati' },
-      saldi.length ? dato('Disponibilità finanziaria', fmtEuro(serie[serie.length - 1].y), serie.length > 1 ? `${serie[serie.length - 1].y >= serie[0].y ? '+' : ''}${fmtEuro(serie[serie.length - 1].y - serie[0].y)} dal ${fmtData(serie[0].data)}` : `al ${fmtData(serie[0].data)}`) : null,
-      mov.length ? dato('Entrate negli ultimi 12 mesi', fmtEuro(somma(entrate))) : null, mov.length ? dato('Uscite negli ultimi 12 mesi', fmtEuro(somma(uscite)), `risparmio ${fmtEuro(somma(entrate) - somma(uscite))}`) : null),
-    saldi.length ? pannello('Disponibilità nel tempo', grafico('Disponibilità finanziaria nel tempo', w => graficoLinea(w, { punti: serie, unita: '€', fmt: v => fmtNum(v, 0) })), h('p', { class: 'attenuato piccolo' }, 'Somma dell\'ultimo saldo noto di ogni conto a ciascuna data. I conti di tipo Debito sono sottratti.')) : null,
-    saldi.length ? pannello('Dove sono i soldi oggi', barreOrizzontali([...ultimi.values()].map(v => ({ nome: v.conto, valore: segnoSaldo(v) })).sort((a, b) => b.valore - a.valore), fmtEuro)) : null,
-    mov.length ? pannello('Entrate e uscite per mese', legenda(serieBarre), grafico('Entrate e uscite per mese', w => graficoBarre(w, { categorie: mesi.map(fmtMese), serie: serieBarre, fmt: v => fmtNum(v, 0) }))) : null,
+    mov.length ? pannello('Entrate e uscite', h('div', { class: 'dati' }, dato('Entrate negli ultimi 12 mesi', fmtEuro(somma(entrate))), dato('Uscite negli ultimi 12 mesi', fmtEuro(somma(uscite)), `risparmio ${fmtEuro(somma(entrate) - somma(uscite))}`)),
+      legenda(serieBarre), grafico('Entrate e uscite per mese', w => graficoBarre(w, { categorie: mesi.map(fmtMese), serie: serieBarre, fmt: v => fmtNum(v, 0) }), { soldi: true })) : null,
     perCat.length ? pannello('Uscite per categoria negli ultimi 12 mesi', barreOrizzontali(perCat, fmtEuro)) : null,
+    date.length > 1 ? pannello('Disponibilità nel tempo', grafico('Disponibilità finanziaria nel tempo', w => graficoLinea(w, { punti: serie, unita: '€', fmt: v => fmtNum(v, 0) }), { soldi: true }), h('p', { class: 'attenuato piccolo' }, 'Somma dell\'ultimo saldo noto di ogni conto a ciascuna data, beni e mutuo esclusi. Un conto entra nella linea dalla data del suo primo saldo: un salto può essere il suo ingresso, non un guadagno.')) : null,
   ];
 }
 
@@ -1574,6 +1723,40 @@ function cruscottoPatrimonio() {
     pannello('Composizione', barreOrizzontali(perTipo.sort((a, b) => b.valore - a.valore), fmtEuro)),
     beni.length ? pannello('Beni', tabella('patrimonio', 'bene', beni, { filtro: false })) : null,
     debiti.length ? pannello('Debiti', tabella('patrimonio', 'debito', debiti, { filtro: false })) : null,
+  ];
+}
+
+/* --- Lavoro ---
+   Per ora: incassi da lavoro presi dai totali mensili dei conti (le voci di finanze/movimento con il campo "lavoro",
+   che dice la fonte), incassi attesi e attività. Il resto lo decide il titolare: ogni tipo nuovo si aggiunge in 05-schema.js.
+   Colori delle fonti in ordine fisso, per nome. */
+function incassiLavoro() {
+  const mov = voci('finanze', 'movimento').filter(v => v.lavoro);
+  const mesi = [...new Set(mov.map(v => v.data.slice(0, 7)))].sort().slice(-12);
+  const fonti = [...new Set(mov.map(v => v.lavoro))].sort();
+  const serie = fonti.map((nome, i) => ({ nome, classe: 'g-barra' + Math.min(i + 1, 6), valori: mesi.map(m => somma(mov.filter(v => v.lavoro === nome && v.data.startsWith(m)).map(v => v.valore))) })).filter(f => f.valori.some(x => x));
+  const totale = somma(serie.flatMap(f => f.valori));
+  return { mesi, serie, totale, media: mesi.length ? totale / mesi.length : 0 };
+}
+function cruscottoLavoro(a) {
+  const inc = incassiLavoro(), att = voci('lavoro', 'attivita'), incassi = voci('lavoro', 'incasso').sort(perData);
+  const attesi = incassi.filter(v => v.stato !== 'incassato');
+  const voceAttesa = v => { const g = giorniDa(v.data); return h('li', { class: 'cliccabile', tabindex: 0, onclick: () => apriModulo('lavoro', 'incasso', v), onkeydown: e => { if (e.key === 'Enter') apriModulo('lavoro', 'incasso', v); } },
+    h('div', { class: 'tra' }, h('strong', {}, v.descrizione && v.committente && v.descrizione.includes(v.committente) ? v.descrizione : [v.committente, v.descrizione].filter(Boolean).join(': ')), h('span', { class: 'num' }, fmtEuro(v.valore))),
+    h('div', { class: 'elenco-nota' }, stato(g > 30 ? 'ritardo' : 'vuota', g > 30 ? `In ritardo: atteso dal ${fmtData(v.data)}` : `Atteso dal ${fmtData(v.data)}`), v.nota ? h('span', { class: 'attenuato' }, ' ' + v.nota) : null)); };
+  return [
+    h('p', { class: 'sotto largo-testo introduzione' }, 'Per ora mostra gli incassi presi dagli estratti conto. Cosa seguire qui lo decidi tu: chiedilo a Claude in chat e la cartella si allarga.'),
+    inc.mesi.length || attesi.length ? h('div', { class: 'dati' },
+      inc.mesi.length ? dato('Incassi da lavoro', fmtEuro(inc.totale), `${inc.mesi.length === 1 ? 'nell\'ultimo mese' : `negli ultimi ${inc.mesi.length} mesi`} con estratto`) : null,
+      inc.mesi.length ? dato('Media al mese', fmtEuro(inc.media), 'per mese di incasso') : null,
+      attesi.length ? dato('Incassi attesi', fmtEuro(somma(attesi.map(v => v.valore))), attesi.length === 1 ? '1 da ricevere' : `${attesi.length} da ricevere`, attesi.some(v => giorniDa(v.data) > 30) ? 'allerta' : '') : null) : null,
+    inc.serie.length ? pannello('Incassi per mese e per fonte', legenda(inc.serie),
+      grafico('Incassi da lavoro per mese e per fonte', w => graficoBarre(w, { categorie: inc.mesi.map(fmtMese), serie: inc.serie, fmt: v => fmtNum(v, 0) }), { soldi: true }),
+      h('p', { class: 'attenuato piccolo' }, 'Dai conti, per mese di incasso: una fattura incassata in un mese può essere del lavoro del mese prima. Importi di quanto arriva sul conto.')) : null,
+    pannello('Incassi attesi', attesi.length ? h('ul', { class: 'elenco' }, attesi.map(voceAttesa)) : h('p', { class: 'attenuato' }, 'Nessun incasso in attesa.'),
+      h('div', { class: 'azioni' }, btn('Aggiungi un incasso atteso', () => apriModulo('lavoro', 'incasso', null, { stato: 'atteso' }), 'piccolo'))),
+    pannello('Attività e partite IVA', att.length ? tabella('lavoro', 'attivita', att, { filtro: false }) : h('p', { class: 'attenuato' }, 'Ancora nessuna attività registrata: partite IVA, società, holding, collaborazioni.'),
+      h('div', { class: 'azioni' }, btn('Aggiungi un\'attività', () => apriModulo('lavoro', 'attivita', null, { stato: 'attiva' }), 'piccolo'))),
   ];
 }
 

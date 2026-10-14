@@ -44,6 +44,14 @@ const AREE_BASE = [
       c('titolo', 'Nome', 'testo', { obbl: true }), c('categoria', 'Tipo', 'scelta', { opzioni: ['Mutuo', 'Finanziamento', 'Leasing', 'Altro'] }), c('valore', 'Residuo in euro', 'numero', { obbl: true, euro: true }),
       c('data', 'Data del residuo', 'data'), c('rata', 'Rata mensile in euro', 'numero', { euro: true }), c('scadenza', 'Fine prevista', 'data'), c('nota', 'Nota', 'lungo')] },
   } },
+  { id: 'lavoro', nome: 'Lavoro', tipi: {
+    incasso: { nome: 'Incasso', plur: 'Incassi attesi e ricevuti', titolo: v => v.descrizione || v.committente, colonne: ['data', 'committente', 'descrizione', 'valore', 'stato'], campi: [
+      c('data', 'Data prevista o di incasso', 'data', { obbl: true }), c('committente', 'Da chi', 'testo', { obbl: true, suggerisci: true, esempi: ['Pazienti privati'] }), c('descrizione', 'Descrizione'),
+      c('competenza', 'Mese di competenza (AAAA-MM)'), c('valore', 'Importo in euro', 'numero', { obbl: true, euro: true }), c('stato', 'Stato', 'scelta', { opzioni: ['atteso', 'incassato'] }), c('nota', 'Nota', 'lungo')] },
+    attivita: { nome: 'Attività', plur: 'Attività e partite IVA', titolo: v => v.titolo, colonne: ['titolo', 'forma', 'ruolo', 'stato'], campi: [
+      c('titolo', 'Nome', 'testo', { obbl: true }), c('forma', 'Forma', 'scelta', { opzioni: ['Partita IVA', 'Società', 'Holding', 'Collaborazione', 'Altro'] }), c('ruolo', 'Il tuo ruolo'),
+      c('data', 'Attiva dal', 'data'), c('stato', 'Stato', 'scelta', { opzioni: ['attiva', 'in avvio', 'chiusa'] }), c('nota', 'Note', 'lungo')] },
+  } },
   { id: 'viaggi', nome: 'Viaggi ed esperienze', tipi: {
     viaggio: { nome: 'Viaggio', plur: 'Viaggi', titolo: v => v.titolo, colonne: ['data', 'titolo', 'luogo', 'con', 'voto'], campi: [
       c('titolo', 'Titolo', 'testo', { obbl: true }), c('luogo', 'Luogo', 'testo'), c('paese', 'Paese', 'testo', { suggerisci: true }), c('data', 'Partenza', 'data', { obbl: true }), c('fine', 'Rientro', 'data'),

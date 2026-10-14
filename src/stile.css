@@ -1,6 +1,7 @@
 :root{
   --fondo:#e9eeec; --carta:#ffffff; --inchiostro:#12211f; --inchiostro2:#465955; --tenue:#6f807c; --linea:#d5dedb; --linea2:#e6ecea;
   --marca:#0d5c57; --marca-su:#ffffff; --marca-tenue:#dcebe8; --serie:#2a78d6; --serie2:#eb6834;
+  --c1:#2a78d6; --c2:#eb6834; --c3:#1baf7a; --c4:#eda100; --c5:#e87ba4; --c6:#008300;
   --ok:#0a7d0a; --attenzione:#8a5a00; --critico:#c0302f; --critico-tenue:#fbeaea; --attenzione-tenue:#fdf3d9;
   --titoli:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
   --testo:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
@@ -9,6 +10,7 @@
 @media (prefers-color-scheme:dark){:root{
   --fondo:#0e1514; --carta:#172120; --inchiostro:#eef4f2; --inchiostro2:#bccac6; --tenue:#8c9c98; --linea:#2b3937; --linea2:#212d2b;
   --marca:#5fc0b8; --marca-su:#04201d; --marca-tenue:#1d3330; --serie:#3987e5; --serie2:#d95926;
+  --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500; --c5:#d55181; --c6:#008300;
   --ok:#3fc13f; --attenzione:#f0b429; --critico:#f07a79; --critico-tenue:#3a1e1e; --attenzione-tenue:#3a2f12;
   color-scheme:dark;
 }}
@@ -35,6 +37,7 @@ a{color:var(--marca)}
 .marchio.grande{font-size:2.1rem;margin-bottom:.3rem}
 .spazio{flex:1}
 .chi,.chi-solo{font-size:.92rem;color:var(--inchiostro2)}
+.chi-solo{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .menu{padding:.5rem 0 2rem 1rem;display:flex;flex-direction:column;gap:2px}
 .menu a{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.55rem .9rem;color:var(--inchiostro2);text-decoration:none;border-radius:10px 0 0 10px;border:1px solid transparent;border-right:0}
 .menu a:hover{color:var(--inchiostro);background:var(--linea2)}
@@ -161,17 +164,45 @@ legend{font-size:.88rem;color:var(--inchiostro2);padding:0 .3rem}
 .g-fuori,.g-punto-fuori{fill:var(--critico);stroke:var(--carta);stroke-width:2}
 .g-banda{fill:var(--serie);opacity:.11}
 .g-cursore{stroke:var(--tenue);stroke-width:1;stroke-dasharray:3 3}
-.g-barra1{fill:var(--serie)} .g-barra2{fill:var(--serie2)}
+.g-barra1{fill:var(--serie)} .g-barra2{fill:var(--serie2)} .g-barra3{fill:var(--c3)} .g-barra4{fill:var(--c4)} .g-barra5{fill:var(--c5)} .g-barra6{fill:var(--c6)}
 .g-fumetto{position:absolute;pointer-events:none;background:var(--inchiostro);color:var(--carta);border-radius:8px;padding:.4rem .6rem;font-size:.82rem;line-height:1.35;white-space:nowrap;z-index:5}
 .g-f-titolo{opacity:.75} .g-f-forte{font-weight:700;font-size:.95rem}
-.legenda{display:flex;gap:1rem;font-size:.86rem;color:var(--inchiostro2);margin:.2rem 0 .4rem}
+.legenda{display:flex;flex-wrap:wrap;gap:.2rem 1rem;font-size:.86rem;color:var(--inchiostro2);margin:.2rem 0 .4rem}
+.legenda span{white-space:nowrap}
 .chiave{display:inline-block;width:.75rem;height:.75rem;border-radius:3px;margin-right:.35rem;vertical-align:-1px}
-i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)}
+i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)} i.g-barra3{background:var(--c3)} i.g-barra4{background:var(--c4)} i.g-barra5{background:var(--c5)} i.g-barra6{background:var(--c6)}
 .scintilla{display:block}
 .ripartizione{display:grid;gap:.45rem;margin:.5rem 0}
 .rip-riga{display:grid;grid-template-columns:minmax(90px,200px) 1fr auto;gap:.8rem;align-items:center;font-size:.93rem}
 .rip-pista{height:12px}
 .rip-barra{display:block;height:100%;background:var(--serie);border-radius:0 4px 4px 0;min-width:3px}
+
+/* quadro delle finanze: classi in colori fissi, verificati per daltonismo (chiari e scuri); i debiti in grigio */
+.c1{--c:var(--c1)} .c2{--c:var(--c2)} .c3{--c:var(--c3)} .c4{--c:var(--c4)} .c5{--c:var(--c5)} .c6{--c:var(--c6)} .c7{--c:var(--tenue)}
+.dato.grande .dato-valore{font-size:2.3rem}
+.composizione{display:flex;gap:2px;height:14px;margin:1.1rem 0 .55rem;border-radius:4px;overflow:hidden}
+.composizione span{display:block;background:var(--c);flex-basis:0;min-width:3px}
+.legenda-classi{list-style:none;margin:0 0 .4rem;padding:0;display:flex;flex-wrap:wrap;gap:.3rem 1.4rem;font-size:.9rem}
+.legenda-classi li{display:flex;align-items:center;gap:.45rem}
+.legenda-classi .chiave{background:var(--c);margin:0}
+.fondo{margin:.7rem 0 .2rem}
+.conti-griglia{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.55rem;margin:1rem 0 .4rem}
+.conto-classe{font-size:.75rem;color:var(--tenue);text-transform:uppercase;letter-spacing:.04em}
+.introduzione{margin-bottom:1rem}
+.conto{border:1px solid var(--linea);border-left:4px solid var(--c);border-radius:10px;padding:.55rem .8rem .6rem;cursor:pointer;background:var(--carta);min-width:0}
+.conto:hover{border-color:var(--marca);border-left-color:var(--c)}
+.conto-nome{font-size:.9rem;color:var(--inchiostro2);overflow-wrap:anywhere}
+.conto-valore{font-family:var(--titoli);font-size:1.4rem;line-height:1.25}
+.conto-nota{font-size:.8rem;color:var(--tenue);overflow-wrap:anywhere}
+
+/* importi riservati: il pulsante con l'occhio sfoca ogni cifra in euro, su ogni pagina */
+.occhio{display:inline-flex;align-items:center;gap:.4rem}
+.occhio svg{width:1.15rem;height:1.15rem;flex:none}
+.occhio.attivo{background:var(--marca-tenue);color:var(--marca)}
+.riservato .soldi{display:inline-block;filter:blur(.42em);user-select:none}
+.riservato input.soldi{filter:blur(5px)}
+.riservato .grafico-soldi .g-y{visibility:hidden}
+.riservato .grafico-soldi .g-fumetto{filter:blur(5px)}
 
 .blocco{min-height:100vh;display:grid;place-items:center;padding:20px}
 .blocco-scheda{background:var(--carta);border:1px solid var(--linea);border-radius:16px;padding:1.8rem;width:min(460px,100%)}
@@ -194,6 +225,13 @@ i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)}
   .solo-largo{display:none}
   .barra{gap:.4rem}
   .spia-testo{display:none} .spia::before{margin-right:0}
+  .occhio-testo{display:none}
+  .dato.grande .dato-valore{font-size:2rem}
+  .quadro .dati{display:grid;grid-template-columns:1fr 1fr;gap:.7rem 1rem}
+  .quadro .dato.grande{grid-column:1/-1}
+  .quadro .dato-valore{font-size:1.45rem}
+  .conti-griglia{grid-template-columns:1fr 1fr}
+  .conto-valore{font-size:1.15rem}
   td.rif{min-width:7rem}
   .rip-riga{grid-template-columns:minmax(70px,110px) 1fr auto}
 }

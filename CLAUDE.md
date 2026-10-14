@@ -14,3 +14,5 @@ Questo repository è **pubblico**: mai dati personali, nemmeno nelle prove o nei
 - Non cambiare il significato dei campi esistenti. Un cambiamento incompatibile del formato richiede `archivio-vita/2` e la conversione automatica della versione 1.
 - La forma di `archivio.json` (funzione `serializza`) deve restare identica a quella di `strumenti/archivio.py` nel repository dei dati.
 - Lingua dell'interfaccia: italiano; nei titoli solo la prima parola maiuscola; niente parole inglesi quando esiste l'equivalente italiano.
+- Importi in euro sempre scritti con `fmtEuro` (o comunque con il simbolo €): così il pulsante "Nascondi importi" li copre da solo (`src/07b-riservato.js`). Un grafico di importi si crea con `grafico(..., { soldi: true })`; un campo del modulo con `euro: true`.
+- Cartella Finanze: il quadro con tutti i conti, i beni e i debiti (`quadroFinanze`) resta la prima cosa sotto il titolo.

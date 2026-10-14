@@ -30,6 +30,10 @@ In questo repository c'è solo il programma, **nessun dato personale**. I dati s
 - Le credenziali Garmin stanno solo nei secrets di GitHub: non le vede la pagina né Claude.
 - Il repository dei dati tiene la cronologia di ogni modifica: qualunque errore si può annullare.
 
+## Importi nascosti
+
+Il pulsante con l'occhio in alto a destra, su ogni pagina, sfoca tutte le cifre in euro: per mostrare la pagina ad altri senza far vedere quanti soldi ci sono. La scelta resta sul dispositivo finché non si preme di nuovo. Funziona da sola su ogni testo che contiene un importo in euro; i grafici di importi nascondono la scala e il fumetto.
+
 ## Formato dei dati: `archivio-vita/1`
 
 `archivio.json` (nel repository dei dati), l'esportazione e i file di importazione hanno questa struttura. Nel repository il file è scritto con un elemento per riga, ordinati per `id`.
@@ -63,6 +67,8 @@ Date `AAAA-MM-GG`, numeri come numeri JSON. Nell'esportazione i documenti posson
 | `finanze` | `movimento` | `data`, `descrizione`, `categoria`, `valore` (negativo per le uscite), `conto` |
 | `patrimonio` | `bene` | `titolo`, `categoria`, `valore`, `data`, `costo`, `acquisto`, `nota` |
 | `patrimonio` | `debito` | `titolo`, `categoria`, `valore` (residuo), `data`, `rata`, `scadenza`, `nota` |
+| `lavoro` | `incasso` | `data` (prevista o di incasso), `committente`, `descrizione`, `competenza` (AAAA-MM), `valore`, `stato` (atteso, incassato), `nota` |
+| `lavoro` | `attivita` | `titolo`, `forma` (Partita IVA, Società, Holding, Collaborazione, Altro), `ruolo`, `data`, `stato` (attiva, in avvio, chiusa), `nota` |
 | `viaggi` | `viaggio` | `titolo`, `luogo`, `paese`, `data`, `fine`, `con`, `valore`, `voto`, `nota` |
 | `viaggi` | `esperienza` | `titolo`, `data`, `categoria`, `luogo`, `con`, `valore`, `voto`, `nota` |
 | `progetti` | `progetto` | `titolo`, `stato`, `obiettivo`, `contenuto` (Markdown), `versione`, `versioni` |

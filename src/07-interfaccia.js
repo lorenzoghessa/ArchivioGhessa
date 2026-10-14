@@ -27,7 +27,7 @@ function controllo(f, v, idArea, idTipo) {
   const base = { name: f.k, id: 'f-' + f.k, required: !!f.obbl };
   if (f.tipo === 'lungo') return h('textarea', { ...base, rows: 4 }, val || '');
   if (f.tipo === 'data') return h('input', { ...base, type: 'date', value: val || '' });
-  if (f.tipo === 'numero') return h('input', { ...base, type: 'text', inputmode: 'decimal', value: val == null ? '' : String(val).replace('.', ','), autocomplete: 'off' });
+  if (f.tipo === 'numero') return h('input', { ...base, type: 'text', inputmode: 'decimal', value: val == null ? '' : String(val).replace('.', ','), autocomplete: 'off', class: f.euro ? 'soldi' : null });
   if (f.tipo === 'si_no') return h('input', { ...base, type: 'checkbox', checked: !!val });
   if (f.tipo === 'scelta') return h('select', base, h('option', { value: '' }, ''), f.opzioni.map(o => h('option', { value: o, selected: o === val }, o)));
   if (f.tipo === 'allegato') return h('select', base, h('option', { value: '' }, 'Nessuno'), S.A.allegati.filter(a => !a.canc).map(a => h('option', { value: a.id, selected: a.id === val }, `${a.nome} (${fmtData(a.data)})`)));
@@ -228,7 +228,7 @@ function barra() {
   return h('header', { class: 'barra' },
     h('a', { class: 'marchio', href: '#/' }, 'Archivio'),
     pp.length > 1 ? h('select', { class: 'chi', 'aria-label': 'Persona', onchange: e => { S.persona = e.target.value; disegna(); } }, h('option', { value: '' }, 'Tutta la famiglia'), pp.map(p => h('option', { value: p.id, selected: p.id === S.persona }, p.nome))) : h('span', { class: 'chi-solo' }, (pp[0] || {}).nome || ''),
-    h('span', { class: 'spazio' }), spiaSync(), btn('Blocca', blocca, 'piatto'));
+    h('span', { class: 'spazio' }), spiaSync(), btn('Blocca', blocca, 'piatto'), pulsanteRiservato());
 }
 function disegna() {
   const app = $('#app');

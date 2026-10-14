@@ -1,6 +1,7 @@
 /* ===== 6. Grafici (SVG disegnato a mano, nessuna libreria esterna) ===== */
-function grafico(descrizione, disegnaFn) {
-  const box = h('div', { class: 'grafico', role: 'img', 'aria-label': descrizione });
+/* opzioni.soldi: il grafico mostra importi, che il pulsante "Nascondi importi" deve coprire (scala verticale e fumetto). */
+function grafico(descrizione, disegnaFn, opzioni = {}) {
+  const box = h('div', { class: 'grafico' + (opzioni.soldi ? ' grafico-soldi' : ''), role: 'img', 'aria-label': descrizione });
   const ro = new ResizeObserver(() => {
     const w = Math.floor(box.clientWidth);
     if (w > 0 && w !== box._w) { box._w = w; box.replaceChildren(...disegnaFn(w)); }
@@ -44,7 +45,7 @@ function graficoLinea(w, { punti, banda, unita, alto = 210, fmt = v => fmtNum(v,
     svg.append(s('rect', { class: 'g-banda', x: m.s, y: su, width: pw, height: Math.max(0, giu - su) }));
   }
   for (const v of tacche(y0, y1)) {
-    svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
+    svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse g-y', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
   }
   const etichetteX = w > 460 && punti.length > 2 ? [x0, (x0 + x1) / 2, x1] : [x0, x1];
   etichetteX.forEach((t, i) => svg.append(s('text', { class: 'g-asse', x: X(t), y: alto - 6, 'text-anchor': i === 0 ? 'start' : i === etichetteX.length - 1 ? 'end' : 'middle' }, fx.format(new Date(t)))));
@@ -78,7 +79,7 @@ function graficoBarre(w, { categorie, serie, fmt = v => fmtNum(v, 0), alto = 200
   const m = { s: Math.max(40, 14 + 6.6 * Math.max(...tk.map(v => fmt(v).length))), d: 8, a: 10, b: 26 }, pw = w - m.s - m.d, ph = alto - m.a - m.b;
   const Y = v => m.a + (1 - v / tetto) * ph;
   const svg = s('svg', { width: w, height: alto, viewBox: `0 0 ${w} ${alto}` });
-  for (const v of tk) svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
+  for (const v of tk) svg.append(s('line', { class: 'g-griglia', x1: m.s, x2: m.s + pw, y1: Y(v), y2: Y(v) }), s('text', { class: 'g-asse g-y', x: m.s - 8, y: Y(v) + 4, 'text-anchor': 'end' }, fmt(v)));
   const gw = pw / categorie.length, bw = Math.max(2, Math.min(22, (gw - 8) / serie.length - 2));
   const ogni = Math.ceil(categorie.length / Math.max(1, Math.floor(pw / 56)));
   const f = fumetto();

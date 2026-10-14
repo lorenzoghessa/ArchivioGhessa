@@ -32,6 +32,29 @@ def serializza(A):
     return "\n".join(testa) + "\n" + ",\n".join(liste) + "\n}\n"
 
 
+def _fin(id_, area, tipo, **c):
+    return {"id": id_, "area": area, "tipo": tipo, "persona": "mario", "creato": "2026-01-01T10:00:00.000Z", "agg": "2026-01-01T10:00:00.000Z", **c}
+
+
+# Conti, beni e debiti per il quadro delle finanze; incassi per la cartella Lavoro. Patrimonio netto atteso: 134.000 €.
+FINANZE = [
+    _fin("s-1", "finanze", "saldo", data="2026-09-30", conto="Conto corrente prova", categoria="Conto corrente", valore=1000),
+    _fin("s-2", "finanze", "saldo", data="2026-09-30", conto="Fondo risparmio", categoria="Risparmio", valore=3000),
+    _fin("s-3", "finanze", "saldo", data="2026-09-30", conto="Portafoglio titoli", categoria="Investimenti", valore=20000),
+    _fin("s-4", "finanze", "saldo", data="2026-09-30", conto="Fondo pensione", categoria="Previdenza", valore=10000, nota="Dichiarato"),
+    _fin("b-1", "patrimonio", "bene", titolo="Casa", categoria="Immobile", valore=200000, data="2026-09-30"),
+    _fin("d-1", "patrimonio", "debito", titolo="Mutuo", categoria="Mutuo", valore=100000, rata=400, data="2026-09-30"),
+    _fin("f-1", "finanze", "movimento", lavoro="Committente A", data="2026-08-01", descrizione="Committente A, totale del mese", categoria="Fatture a un committente", valore=5000),
+    _fin("f-2", "finanze", "movimento", lavoro="Pazienti", data="2026-08-01", descrizione="Pazienti, totale del mese", categoria="Pazienti e aziende", valore=800),
+    _fin("f-3", "finanze", "movimento", data="2026-08-01", descrizione="Spesa, totale del mese", categoria="Spesa alimentare", valore=-1500),
+    _fin("f-4", "finanze", "movimento", lavoro="Committente A", data="2026-09-01", descrizione="Committente A, totale del mese", categoria="Fatture a un committente", valore=5200),
+    _fin("f-5", "finanze", "movimento", lavoro="Amministratore", data="2026-09-01", descrizione="Amministratore, totale del mese", categoria="Compenso amministratore", valore=300),
+    _fin("f-6", "finanze", "movimento", data="2026-09-01", descrizione="Ristoranti, totale del mese", categoria="Ristoranti e consegne", valore=-400),
+    _fin("f-7", "finanze", "movimento", data="2026-09-01", descrizione="Tasse, totale del mese", categoria="Tasse (F24)", valore=-2000),
+    _fin("l-1", "lavoro", "incasso", data="2026-10-01", committente="Cliente prova", descrizione="Fattura di settembre", valore=6000, stato="atteso"),
+]
+
+
 def repo_iniziale():
     T = "2026-01-01T10:00:00.000Z"
     oggi = dt.date.today()
@@ -50,7 +73,7 @@ def repo_iniziale():
              {"id": "c-2", "area": "salute", "tipo": "corpo", "persona": "mario", "data": "2026-05-11", "metrica": "Circonferenza vita", "valore": 85, "unita": "cm", "creato": T, "agg": T},
              {"id": "c-3", "area": "salute", "tipo": "corpo", "persona": "mario", "data": "2026-05-11", "metrica": "Massa grassa", "valore": 18, "unita": "%", "creato": T, "agg": T},
              {"id": "o-1", "area": "salute", "tipo": "osservazione", "persona": "mario", "data": "2026-05-11", "titolo": "LDL alto", "testo": "Da discutere col medico.", "priorita": "alta", "stato": "aperta", "creato": T, "agg": T},
-         ],
+         ] + FINANZE,
          "allegati": [{"id": "d-1", "nome": "referto.pdf", "mime": "application/pdf", "dim": 20, "area": "salute", "persona": "mario", "data": "2026-01-10", "stato": "elaborato", "file": "documenti/d-1.pdf", "creato": T, "agg": T}],
          "aree": [], "registro": []}
     righe = ["data;tipo;metrica;valore;unita"]
@@ -158,7 +181,7 @@ async def main():
         await A.click("text=Collega e apri")
         await A.wait_for_selector("h1:has-text('Quadro generale')")
         await A.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await A.evaluate("S.A.voci.length") == 12, "archivio scaricato dal repository")
+        controlla(await A.evaluate("S.A.voci.length") == 12 + len(FINANZE), "archivio scaricato dal repository")
         controlla(await A.evaluate("S.estVoci.length") == 31, "dati Garmin letti dal repository (31 righe)")
         ind = await A.evaluate("(i => i && {v: i.valore, k: Object.keys(i.componenti)})(indiceSalute())")
         controlla(ind and 0 < ind["v"] <= 100 and sorted(ind["k"]) == ["attivita", "corpo", "esami", "recupero", "sonno"], f"indice di salute con cinque componenti {ind}")
@@ -177,6 +200,32 @@ async def main():
         controlla(primi == ["Primo consiglio", "Secondo consiglio"], f"consigli ordinati per priorità, senza quelli seguiti {primi}")
         sez = A.locator("section:has(h2:has-text('Allenamenti'))")
         controlla(await sez.locator(".grafico svg").count() == 1 and await sez.locator("td:has-text('Scheda prova')").count() == 1 and await sez.locator("td:has-text('140')").count() == 1 and await sez.locator("td:has-text('sì')").count() == 1, "allenamenti: grafico, sedute e massimali")
+        # --- finanze: quadro in testa con tutti i conti; pulsante che nasconde gli importi su ogni pagina
+        await A.goto(URL + "#/a/finanze")
+        await A.wait_for_timeout(300)
+        primo = await A.evaluate("document.querySelector('#vista section') && document.querySelector('#vista section').className")
+        controlla(primo == "pannello quadro", f"finanze: il quadro è la prima cosa sotto il titolo ({primo})")
+        netto = await A.inner_text("section.quadro .dato.grande .dato-valore")
+        controlla("134.000" in netto, f"finanze: patrimonio netto calcolato ({netto})")
+        controlla(await A.locator("section.quadro .conto").count() == 6 and await A.locator("section.quadro .composizione span").count() == 5, "finanze: una scheda per ogni conto, bene e debito; cinque classi nella barra")
+        controlla(await A.locator("section.quadro .fondo:has-text('3,2 mesi')").count() == 1, "finanze: mesi coperti dal fondo di emergenza")
+        await scatta(A, "04-finanze")
+        await A.click("#riservato")
+        riserv = await A.evaluate("({cl: document.documentElement.classList.contains('riservato'), n: document.querySelectorAll('#vista .soldi').length, netto: !!document.querySelector('section.quadro .dato.grande .soldi'), filtro: getComputedStyle(document.querySelector('#vista .soldi')).filter, mem: localStorage.getItem('archivio-riservato'), asse: getComputedStyle(document.querySelector('.grafico-soldi .g-y')).visibility})")
+        controlla(riserv["cl"] and riserv["n"] > 10 and riserv["netto"] and "blur" in riserv["filtro"] and riserv["mem"] == "1" and riserv["asse"] == "hidden", f"importi nascosti con il pulsante {riserv}")
+        await scatta(A, "05-finanze-nascoste")
+        await A.goto(URL + "#/")
+        await A.wait_for_timeout(200)
+        controlla(await A.locator("#riservato[aria-pressed=true]").count() == 1 and await A.locator(".scheda:has-text('Patrimonio netto') .soldi").count() == 1, "importi nascosti anche nelle altre pagine")
+        await A.click("#riservato")
+        controlla(await A.evaluate("!document.documentElement.classList.contains('riservato') && localStorage.getItem('archivio-riservato') === null"), "importi di nuovo visibili")
+        # --- lavoro
+        await A.goto(URL + "#/a/lavoro")
+        await A.wait_for_timeout(300)
+        lav = A.locator("#vista")
+        controlla(await lav.locator("h1:has-text('Lavoro')").count() == 1 and await lav.locator(".dato:has-text('Incassi da lavoro') .dato-valore:has-text('11.300')").count() == 1 and await lav.locator(".grafico svg").count() == 1 and await lav.locator("section:has(h2:has-text('Incassi attesi')) li").count() == 1, "lavoro: incassi dai conti, grafico e incasso atteso")
+        controlla(await A.locator("nav.menu a:has-text('Lavoro')").count() == 1, "lavoro: cartella nel menu")
+        await scatta(A, "06-lavoro")
         await A.goto(URL + "#/a/salute/sensore")
         await A.click("tbody tr >> nth=0")
         controlla(await A.locator("#modale").count() == 0 and await A.locator(".avviso:has-text('Garmin Connect')").count() == 1, "un dato Garmin non si modifica dalla pagina")
@@ -220,7 +269,7 @@ async def main():
         await collega(B)
         await B.wait_for_selector("#vista")
         await B.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 14, "il telefono vede gli stessi dati")
+        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 14 + len(FINANZE), "il telefono vede gli stessi dati")
         await B.evaluate("metti({area:'salute',tipo:'corpo',persona:'mario',data:'2026-10-07',metrica:'Pressione sistolica',valore:120,unita:'mmHg'})")
         await A.evaluate("metti({area:'viaggi',tipo:'viaggio',persona:'mario',data:'2027-04-01',titolo:'Tokyo'})")
         await A.evaluate("togli('voci','o-1')")
@@ -232,7 +281,7 @@ async def main():
         stato_ = "({n: S.A.voci.filter(v=>!v.canc).length, tokyo: S.A.voci.some(v=>v.titolo==='Tokyo'), press: S.A.voci.some(v=>v.metrica==='Pressione sistolica'), o1: !!voce('o-1')})"
         sa, sb = await A.evaluate(stato_), await B.evaluate(stato_)
         controlla(sa == sb and sa["tokyo"] and sa["press"] and not sa["o1"], f"modifiche contemporanee unite su entrambi i dispositivi {sa}")
-        for r, n in [("#/", "10-telefono-quadro"), ("#/a/salute", "11-telefono-salute"), ("#/rapporti", "12-telefono-rapporti"), ("#/documenti", "13-telefono-documenti"), ("#/impostazioni", "14-telefono-impostazioni")]:
+        for r, n in [("#/", "10-telefono-quadro"), ("#/a/salute", "11-telefono-salute"), ("#/rapporti", "12-telefono-rapporti"), ("#/documenti", "13-telefono-documenti"), ("#/impostazioni", "14-telefono-impostazioni"), ("#/a/finanze", "15-telefono-finanze"), ("#/a/lavoro", "16-telefono-lavoro")]:
             await B.goto(URL + r)
             await B.wait_for_timeout(300)
             await scatta(B, n)
