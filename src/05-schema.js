@@ -35,6 +35,9 @@ const AREE_BASE = [
       c('data', 'Data', 'data', { obbl: true }), c('conto', 'Conto', 'testo', { obbl: true, suggerisci: true }), c('categoria', 'Tipo', 'scelta', { opzioni: ['Conto corrente', 'Risparmio', 'Investimenti', 'Previdenza', 'Contanti', 'Debito'] }), c('valore', 'Saldo in euro', 'numero', { obbl: true, euro: true }), c('nota', 'Nota')] },
     movimento: { nome: 'Movimento', plur: 'Entrate e uscite', titolo: v => v.descrizione, colonne: ['data', 'descrizione', 'categoria', 'valore'], campi: [
       c('data', 'Data', 'data', { obbl: true }), c('descrizione', 'Descrizione', 'testo', { obbl: true }), c('categoria', 'Categoria', 'testo', { suggerisci: true }), c('valore', 'Importo in euro (negativo per le uscite)', 'numero', { obbl: true, euro: true }), c('conto', 'Conto', 'testo', { suggerisci: true })] },
+    budget: { nome: 'Obiettivo di spesa', plur: 'Obiettivi di spesa', titolo: v => v.voce, colonne: ['data', 'voce', 'speso', 'tetto'], campi: [
+      c('data', 'Mese (primo giorno)', 'data', { obbl: true }), c('voce', 'Busta', 'testo', { obbl: true, suggerisci: true }), c('tetto', 'Tetto del mese in euro', 'numero', { obbl: true, euro: true }),
+      c('speso', 'Speso nel mese in euro', 'numero', { euro: true }), c('ordine', 'Posizione nell\'elenco', 'numero'), c('nota', 'Nota')] },
   } },
   { id: 'patrimonio', nome: 'Patrimonio', tipi: {
     bene: { nome: 'Bene', plur: 'Beni', titolo: v => v.titolo, colonne: ['titolo', 'categoria', 'valore', 'data'], campi: [

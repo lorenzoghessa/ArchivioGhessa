@@ -35,7 +35,7 @@ function vistaCasa() {
   const schede = {
     lavoro: lav.mesi.length || attesi.length ? [lav.mesi.length ? dato('Incassi da lavoro', fmtEuro(lav.totale), `media ${fmtEuro(lav.media)} al mese`) : null, attesi.length ? dato('Incassi attesi', fmtEuro(somma(attesi.map(v => v.valore)))) : null] : null,
     salute: mis.length ? [(ind => (ind ? dato('Indice di salute', `${Math.round(ind.valore)} su 100`, `${fascia(ind.valore).testo}, affidabilità ${ind.affidabilita}`) : null))(indiceSalute()), dato('Fuori intervallo all\'ultima misura', nFuori, `su ${perPar.length} parametri seguiti`, nFuori ? 'allerta' : '')] : null,
-    finanze: voci('finanze').length ? [dato('Disponibilità finanziaria', fmtEuro(totaleFinanze(voci('finanze', 'saldo'))))] : null,
+    finanze: voci('finanze').length ? [dato('Disponibilità finanziaria', fmtEuro(totaleFinanze(voci('finanze', 'saldo')))), (b => { if (!b.mesi.length) return null; const m = b.mesi[b.mesi.length - 1], x = b.del(m), t = somma(x.map(v => v.speso)), tt = somma(x.map(v => v.tetto)); return dato('Buste del mese', `${fmtEuro(t)} su ${fmtEuro(tt)}`, nomeMese(m), t > tt + 0.5 ? 'allerta' : ''); })(budgetMesi())] : null,
     patrimonio: voci('patrimonio').length || voci('finanze', 'saldo').length ? [dato('Patrimonio netto', fmtEuro(patrimonioNetto()), 'beni e disponibilità meno debiti')] : null,
     viaggi: viaggi.length ? [dato('Viaggi registrati', viaggi.length, prossimo ? `Prossimo: ${prossimo.titolo}, ${fmtData(prossimo.data)}` : '')] : null,
     progetti: prog.length ? [dato('Progetti', prog.length, `${prog.filter(p => p.stato === 'attivo').length} attivi`)] : null,
@@ -130,7 +130,7 @@ function vistaArea(a) {
   const cr = { salute: cruscottoSalute, finanze: cruscottoFinanze, patrimonio: cruscottoPatrimonio, lavoro: cruscottoLavoro, viaggi: cruscottoViaggi, progetti: cruscottoProgetti }[a.id] || cruscottoLibero;
   return h('div', {},
     h('div', { class: 'testa' }, h('h1', {}, a.nome)),
-    a.id === 'salute' ? pannelloIndice() : a.id === 'finanze' ? quadroFinanze() : null,
+    a.id === 'salute' ? pannelloIndice() : a.id === 'finanze' ? [quadroFinanze(), pannelloBudget()] : null,
     pannelloConsigli(a.id),
     cr(a),
     a.id === 'progetti' ? null : pannello('Sezioni di questa cartella', h('div', { class: 'sezioni' }, Object.entries(a.tipi).map(([k, d]) => h('div', { class: 'sezione' },
@@ -267,6 +267,32 @@ function quadroFinanze() {
       h('span', { class: 'attenuato piccolo' }, ` Obiettivo ${OBIETTIVO_FONDO_MESI} mesi. Uscite medie ${fmtEuro(um.media)} al mese, tasse escluse, sugli ultimi ${um.mesi} mesi.`)) : null,
     h('div', { class: 'conti-griglia' }, ordinate.map(carta)),
     h('p', { class: 'attenuato piccolo' }, 'Ultimo valore noto di ogni voce, con la sua fonte. Tocca una voce per correggerla. Il pulsante con l\'occhio in alto a destra nasconde gli importi.'));
+}
+/* Buste mensili: quanto speso contro il tetto di ogni busta, nell'ultimo mese con gli estratti (voci finanze/budget, scritte da Claude). */
+const _meseLungo = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const nomeMese = ym => _meseLungo.format(new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7) - 1, 1)));
+function budgetMesi() {
+  const l = voci('finanze', 'budget').sort(perData);
+  const mesi = [...new Set(l.map(v => v.data.slice(0, 7)))].sort();
+  return { l, mesi, del: m => l.filter(v => v.data.startsWith(m)), entro: m => { const x = l.filter(v => v.data.startsWith(m)); return somma(x.map(v => v.speso)) <= somma(x.map(v => v.tetto)) + 0.5; } };
+}
+function pannelloBudget() {
+  const b = budgetMesi(); if (!b.mesi.length) return null;
+  const ultimo = b.mesi[b.mesi.length - 1], ora = b.del(ultimo).sort((x, y) => (x.ordine ?? 99) - (y.ordine ?? 99)), recenti = b.mesi.slice(-6);
+  const tot = somma(ora.map(v => v.speso)), tetto = somma(ora.map(v => v.tetto));
+  const riga = v => {
+    const speso = v.speso || 0, oltre = speso > v.tetto + 0.5;
+    const storia = recenti.map(m => b.l.find(x => x.voce === v.voce && x.data.startsWith(m))).filter(Boolean);
+    return h('div', { class: 'busta' },
+      h('div', { class: 'tra' }, h('strong', {}, v.voce), h('span', { class: 'num' }, `${fmtEuro(speso)} su ${fmtEuro(v.tetto)}`)),
+      h('span', { class: 'busta-pista' }, h('span', { class: 'busta-barra' + (oltre ? ' oltre' : ''), style: `width:${Math.max(2, Math.min(100, (speso / v.tetto) * 100))}%` })),
+      h('div', { class: 'elenco-nota' }, stato(oltre ? 'ritardo' : 'ok', oltre ? `Oltre di ${fmtEuro(speso - v.tetto)}` : `Restavano ${fmtEuro(v.tetto - speso)}`),
+        h('span', { class: 'attenuato' }, `, entro il tetto in ${storia.filter(x => (x.speso || 0) <= x.tetto + 0.5).length} degli ultimi ${storia.length} mesi`)));
+  };
+  return pannello(`Obiettivi di spesa, ${nomeMese(ultimo)}`,
+    h('p', {}, stato(tot <= tetto + 0.5 ? 'ok' : 'ritardo', tot <= tetto + 0.5 ? `Dentro le buste: ${fmtEuro(tot)} su ${fmtEuro(tetto)}` : `Oltre le buste di ${fmtEuro(tot - tetto)}: ${fmtEuro(tot)} su ${fmtEuro(tetto)}`)),
+    h('div', { class: 'buste' }, ora.map(riga)),
+    h('p', { class: 'attenuato piccolo' }, `Mesi interi dentro le buste: ${b.mesi.filter(b.entro).length} su ${b.mesi.length}. Si aggiorna a ogni controllo mensile, quando arrivano gli estratti.`));
 }
 function cruscottoFinanze() {
   const saldi = voci('finanze', 'saldo').sort(perData), mov = voci('finanze', 'movimento');

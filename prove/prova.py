@@ -51,6 +51,10 @@ FINANZE = [
     _fin("f-5", "finanze", "movimento", lavoro="Amministratore", data="2026-09-01", descrizione="Amministratore, totale del mese", categoria="Compenso amministratore", valore=300),
     _fin("f-6", "finanze", "movimento", data="2026-09-01", descrizione="Ristoranti, totale del mese", categoria="Ristoranti e consegne", valore=-400),
     _fin("f-7", "finanze", "movimento", data="2026-09-01", descrizione="Tasse, totale del mese", categoria="Tasse (F24)", valore=-2000),
+    _fin("g-1", "finanze", "budget", data="2026-08-01", voce="Mangiare fuori", tetto=200, speso=150),
+    _fin("g-2", "finanze", "budget", data="2026-08-01", voce="Abbigliamento", tetto=100, speso=60),
+    _fin("g-3", "finanze", "budget", data="2026-09-01", voce="Mangiare fuori", tetto=200, speso=250),
+    _fin("g-4", "finanze", "budget", data="2026-09-01", voce="Abbigliamento", tetto=100, speso=40),
     _fin("l-1", "lavoro", "incasso", data="2026-10-01", committente="Cliente prova", descrizione="Fattura di settembre", valore=6000, stato="atteso"),
 ]
 
@@ -209,6 +213,10 @@ async def main():
         controlla("134.000" in netto, f"finanze: patrimonio netto calcolato ({netto})")
         controlla(await A.locator("section.quadro .conto").count() == 6 and await A.locator("section.quadro .composizione span").count() == 5, "finanze: una scheda per ogni conto, bene e debito; cinque classi nella barra")
         controlla(await A.locator("section.quadro .fondo:has-text('3,2 mesi')").count() == 1, "finanze: mesi coperti dal fondo di emergenza")
+        bud = A.locator("section:has(h2:has-text('Obiettivi di spesa'))")
+        controlla(await bud.locator(".busta").count() == 2 and await bud.locator("h2:has-text('settembre 2026')").count() == 1 and await bud.locator(".busta:has-text('Oltre di 50')").count() == 1 and await bud.locator(".stato:has-text('Dentro le buste')").count() == 1 and await bud.locator("text=2 su 2").count() == 1,
+                  "finanze: buste dell'ultimo mese contro il tetto")
+        controlla(await A.evaluate("[...document.querySelectorAll('#vista section h2')].map(x => x.textContent).indexOf('Obiettivi di spesa, settembre 2026')") == 0, "finanze: le buste vengono subito dopo il quadro")
         await scatta(A, "04-finanze")
         await A.click("#riservato")
         riserv = await A.evaluate("({cl: document.documentElement.classList.contains('riservato'), n: document.querySelectorAll('#vista .soldi').length, netto: !!document.querySelector('section.quadro .dato.grande .soldi'), filtro: getComputedStyle(document.querySelector('#vista .soldi')).filter, mem: localStorage.getItem('archivio-riservato'), asse: getComputedStyle(document.querySelector('.grafico-soldi .g-y')).visibility})")

@@ -194,6 +194,10 @@ i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)} i.g-bar
 .conto-nome{font-size:.9rem;color:var(--inchiostro2);overflow-wrap:anywhere}
 .conto-valore{font-family:var(--titoli);font-size:1.4rem;line-height:1.25}
 .conto-nota{font-size:.8rem;color:var(--tenue);overflow-wrap:anywhere}
+.buste{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:.9rem 2rem;margin:.6rem 0}
+.busta-pista{display:block;height:8px;background:var(--linea2);border-radius:4px;margin:.35rem 0 .3rem;overflow:hidden}
+.busta-barra{display:block;height:100%;border-radius:4px;background:var(--ok)}
+.busta-barra.oltre{background:var(--critico)}
 
 /* importi riservati: il pulsante con l'occhio sfoca ogni cifra in euro, su ogni pagina */
 .occhio{display:inline-flex;align-items:center;gap:.4rem}

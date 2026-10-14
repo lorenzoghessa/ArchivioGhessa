@@ -19,7 +19,7 @@ const btn = (testo, onclick, classe = '') => h('button', { type: 'button', class
 const vuoto = (testo, ...azioni) => h('div', { class: 'vuoto' }, h('p', {}, testo), azioni.length ? h('div', { class: 'azioni' }, azioni) : null);
 const pannello = (titolo, ...kids) => h('section', { class: 'pannello' }, titolo ? h('h2', {}, titolo) : null, kids);
 const dato = (etich, valore, nota, classe = '') => h('div', { class: 'dato ' + classe }, h('div', { class: 'dato-etichetta' }, etich), h('div', { class: 'dato-valore num' }, valore), nota ? h('div', { class: 'dato-nota' }, nota) : null);
-const stato = (tipo, testo) => h('span', { class: 'stato ' + tipo }, h('span', { class: 'stato-segno', 'aria-hidden': 'true' }, { ok: '✓', ritardo: '!', vuota: '○', fuori: '◆' }[tipo] || '•'), testo);
+const stato = (tipo, testo) => h('span', { class: 'stato ' + tipo }, h('span', { class: 'stato-segno', 'aria-hidden': 'true' }, { ok: '✓', ritardo: '!', vuota: '○', fuori: '◆' }[tipo] || '•'), h('span', {}, testo));
 
 /* --- Modulo generato dallo schema --- */
 function controllo(f, v, idArea, idTipo) {
