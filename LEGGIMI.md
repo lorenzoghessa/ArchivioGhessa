@@ -73,6 +73,7 @@ Date `AAAA-MM-GG`, numeri come numeri JSON. Nell'esportazione i documenti posson
 | `viaggi` | `esperienza` | `titolo`, `data`, `categoria`, `luogo`, `con`, `valore`, `voto`, `nota` |
 | `progetti` | `progetto` | `titolo`, `stato`, `obiettivo`, `contenuto` (Markdown), `versione`, `versioni` |
 | `sistema` | `scadenza` | `titolo`, `data`, `zona`, `ripeti` (mai, mensile, trimestrale, semestrale, annuale), `stato`, `nota` |
+| ogni area | `compito` | `titolo`, `data`, `chi` (Lorenzo, Claude), `stato` (da fare, in corso, in attesa, fatto, annullato), `scadenza`, `priorita`, `nota`, `rif`, `aggiornamenti` (`[{quando, chi, testo}]`), `letto`. Due versioni dello stesso compito si uniscono sommando gli aggiornamenti |
 | cartella personalizzata | `voce` | `titolo`, `data`, `categoria`, `valore`, `unita`, `nota` |
 
 I dati Garmin non stanno in `archivio.json`: sono in `garmin/AAAA.csv` (`data;tipo;metrica;valore;unita`) e la pagina li mostra come voci `sensore` o `corpo` di sola lettura.
