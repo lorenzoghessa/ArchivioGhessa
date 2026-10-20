@@ -76,6 +76,9 @@ def repo_iniziale():
              {"id": "c-1", "area": "salute", "tipo": "corpo", "persona": "mario", "data": "2026-05-11", "metrica": "Altezza", "valore": 180, "unita": "cm", "creato": T, "agg": T},
              {"id": "c-2", "area": "salute", "tipo": "corpo", "persona": "mario", "data": "2026-05-11", "metrica": "Circonferenza vita", "valore": 85, "unita": "cm", "creato": T, "agg": T},
              {"id": "c-3", "area": "salute", "tipo": "corpo", "persona": "mario", "data": "2026-05-11", "metrica": "Massa grassa", "valore": 18, "unita": "%", "creato": T, "agg": T},
+             {"id": "t-1", "area": "salute", "tipo": "compito", "persona": "mario", "data": "2026-05-11", "titolo": "Prenotare il prelievo", "chi": "Lorenzo", "stato": "da fare", "scadenza": "2026-05-20", "letto": "2026-05-12T09:00:00.000Z",
+              "aggiornamenti": [{"quando": "2026-05-11T08:00:00.000Z", "chi": "Lorenzo", "testo": "Ci penso io."}, {"quando": "2026-05-12T09:00:00.000Z", "chi": "Claude", "testo": "Aggiungi ApoB e Lp(a)."}], "creato": T, "agg": T},
+             {"id": "t-2", "area": "salute", "tipo": "compito", "persona": "mario", "data": "2026-05-11", "titolo": "Compito chiuso", "chi": "Claude", "stato": "fatto", "letto": T, "aggiornamenti": [], "creato": T, "agg": T},
              {"id": "o-1", "area": "salute", "tipo": "osservazione", "persona": "mario", "data": "2026-05-11", "titolo": "LDL alto", "testo": "Da discutere col medico.", "priorita": "alta", "stato": "aperta", "creato": T, "agg": T},
          ] + FINANZE,
          "allegati": [{"id": "d-1", "nome": "referto.pdf", "mime": "application/pdf", "dim": 20, "area": "salute", "persona": "mario", "data": "2026-01-10", "stato": "elaborato", "file": "documenti/d-1.pdf", "creato": T, "agg": T}],
@@ -91,6 +94,7 @@ def repo_iniziale():
         "documenti/d-1.pdf": b"%PDF-1.4 finto referto",
         f"garmin/{oggi.year}.csv": ("\n".join(righe) + "\n").encode(),
         "garmin/stato.json": json.dumps(stato).encode(),
+        "lavoro/stato/cose-da-fare.md": "# Cose da fare\n\n## Aperte\n| id | area | cosa | dettaglio | scadenza | priorità | stato | rinvii | origine |\n|---|---|---|---|---|---|---|---|---|\n| c-002 | UFFICIO | Seconda cosa | Altro | - | 3 | aperta | 0 | prova |\n| c-001 | UFFICIO | Rinnovare il contratto | Dettaglio lungo | 01/01/2026 | 1 | aperta | 0 | prova |\n\n## Chiuse negli ultimi 7 giorni\n| id | cosa | chiusa il |\n|---|---|---|\n| c-000 | Vecchia | 01/01/2026 |\n".encode(),
         "rapporti/2026-09.md": "# Rapporto di settembre 2026\n\nIn breve: **tutto stabile**.\n\n## Cosa fare\n\n- Ripetere LDL\n- Camminare\n\n| Metrica | Valore |\n|---|---|\n| Passi | 8.500 |\n".encode(),
     }
 
@@ -185,7 +189,7 @@ async def main():
         await A.click("text=Collega e apri")
         await A.wait_for_selector("h1:has-text('Quadro generale')")
         await A.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await A.evaluate("S.A.voci.length") == 12 + len(FINANZE), "archivio scaricato dal repository")
+        controlla(await A.evaluate("S.A.voci.length") == 14 + len(FINANZE), "archivio scaricato dal repository")
         controlla(await A.evaluate("S.estVoci.length") == 31, "dati Garmin letti dal repository (31 righe)")
         ind = await A.evaluate("(i => i && {v: i.valore, k: Object.keys(i.componenti)})(indiceSalute())")
         controlla(ind and 0 < ind["v"] <= 100 and sorted(ind["k"]) == ["attivita", "corpo", "esami", "recupero", "sonno"], f"indice di salute con cinque componenti {ind}")
@@ -277,7 +281,7 @@ async def main():
         await collega(B)
         await B.wait_for_selector("#vista")
         await B.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 14 + len(FINANZE), "il telefono vede gli stessi dati")
+        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 16 + len(FINANZE), "il telefono vede gli stessi dati")
         await B.evaluate("metti({area:'salute',tipo:'corpo',persona:'mario',data:'2026-10-07',metrica:'Pressione sistolica',valore:120,unita:'mmHg'})")
         await A.evaluate("metti({area:'viaggi',tipo:'viaggio',persona:'mario',data:'2027-04-01',titolo:'Tokyo'})")
         await A.evaluate("togli('voci','o-1')")
@@ -289,6 +293,52 @@ async def main():
         stato_ = "({n: S.A.voci.filter(v=>!v.canc).length, tokyo: S.A.voci.some(v=>v.titolo==='Tokyo'), press: S.A.voci.some(v=>v.metrica==='Pressione sistolica'), o1: !!voce('o-1')})"
         sa, sb = await A.evaluate(stato_), await B.evaluate(stato_)
         controlla(sa == sb and sa["tokyo"] and sa["press"] and not sa["o1"], f"modifiche contemporanee unite su entrambi i dispositivi {sa}")
+        # --- compiti e aggiornamenti: zona in ogni cartella, scritta dalla pagina e letta da Claude
+        await A.goto(URL + "#/a/salute")
+        await A.wait_for_timeout(300)
+        sez = A.locator("section.compiti")
+        controlla(await sez.count() == 1 and await sez.locator("li.compito:has-text('Prenotare il prelievo')").count() == 1 and await sez.locator("li.compito:has-text('Compito chiuso')").count() == 0, "compiti: aperti in salute, chiusi nascosti")
+        controlla(await sez.locator(".agg-voce.da-claude:has-text('ApoB')").count() == 1 and await sez.locator("li.compito:has-text('Letto da Claude')").count() == 1, "compiti: risposta di Claude e stato di lettura")
+        await sez.locator(".nuovo-compito textarea").fill("Comprare la bilancia\nQuella con la massa grassa")
+        await sez.locator(".nuovo-compito select").select_option("Lorenzo")
+        await sez.get_by_role("button", name="Aggiungi").click()
+        await A.wait_for_timeout(200)
+        nuovo = A.locator("section.compiti li.compito:has-text('Comprare la bilancia')")
+        controlla(await nuovo.count() == 1 and await nuovo.locator(":text('Claude non l\\'ha ancora letto')").count() == 1 and await nuovo.locator(".elenco-nota:has-text('massa grassa')").count() == 1, "compiti: nuovo compito con titolo dalla prima riga e dettagli")
+        vecchio = A.locator("section.compiti li.compito:has-text('Prenotare il prelievo')")
+        await vecchio.locator("summary:has-text('Scrivi un aggiornamento')").click()
+        await vecchio.locator("details.scrivi textarea").fill("Prenotato per lunedì.")
+        await vecchio.get_by_role("button", name="Invia", exact=True).click()
+        await A.wait_for_timeout(200)
+        await A.evaluate("sincronizza(true)")
+        await A.wait_for_function("S.sync.stato === 'ok'")
+        R = json.loads(repo["archivio.json"])
+        t1 = next(v for v in R["voci"] if v["id"] == "t-1")
+        controlla([x["testo"] for x in t1["aggiornamenti"]][-1] == "Prenotato per lunedì." and any(v.get("titolo") == "Comprare la bilancia" and v.get("chi") == "Lorenzo" for v in R["voci"]), "compiti: aggiornamento e compito nuovo arrivano nel repository")
+        unito = await A.evaluate("""(() => { const a = {id:'x', tipo:'compito', agg:'2', letto:'1', aggiornamenti:[{quando:'1',chi:'Lorenzo',testo:'a'},{quando:'3',chi:'Lorenzo',testo:'b'}]};
+            const b = {id:'x', tipo:'compito', agg:'4', letto:'4', stato:'in corso', aggiornamenti:[{quando:'1',chi:'Lorenzo',testo:'a'},{quando:'4',chi:'Claude',testo:'c'}]};
+            const u = unisciCompito(a, b); return [u.stato, u.letto, u.aggiornamenti.map(x => x.testo).join('')]; })()""")
+        controlla(unito == ["in corso", "4", "abc"], f"compiti: modifiche incrociate di pagina e Claude si sommano {unito}")
+        await scatta(A, "05-compiti")
+        await A.goto(URL + "#/a/lavoro")
+        await A.wait_for_timeout(300)
+        cl = A.locator("section:has(h2:has-text('Cose da fare di lavoro'))")
+        nomi = await cl.locator("li.compito strong .stato > span:last-child").all_inner_texts()
+        controlla([n.strip() for n in nomi] == ["Rinnovare il contratto", "Seconda cosa"], f"lavoro: cose da fare di Claudio in ordine, senza le chiuse {nomi}")
+        riga = cl.locator("li.compito:has-text('Rinnovare il contratto')")
+        await riga.locator("summary:has-text('Scrivi a Claudio')").click()
+        await riga.locator("details.scrivi textarea").fill("Firmato ieri.")
+        await riga.get_by_role("button", name="Invia", exact=True).click()
+        await A.wait_for_timeout(200)
+        await A.evaluate("sincronizza(true)")
+        await A.wait_for_function("S.sync.stato === 'ok'")
+        R = json.loads(repo["archivio.json"])
+        cv = next((v for v in R["voci"] if v["id"] == "cl-c-001"), {})
+        controlla(cv.get("rif") == "c-001" and cv.get("aggiornamenti", [{}])[0].get("testo") == "Firmato ieri.", "lavoro: messaggio a Claudio salvato come compito collegato")
+        controlla(await A.locator("section.compiti li.compito:has-text('Rinnovare il contratto')").count() == 0, "lavoro: il compito collegato non si ripete tra i compiti")
+        await A.goto(URL + "#/")
+        await A.wait_for_timeout(300)
+        controlla(await A.locator("section:has(h2:text-is('Compiti')) li.compito:has-text('Prenotare il prelievo')").count() == 1, "quadro generale: compiti di tutte le cartelle")
         for r, n in [("#/", "10-telefono-quadro"), ("#/a/salute", "11-telefono-salute"), ("#/rapporti", "12-telefono-rapporti"), ("#/documenti", "13-telefono-documenti"), ("#/impostazioni", "14-telefono-impostazioni"), ("#/a/finanze", "15-telefono-finanze"), ("#/a/lavoro", "16-telefono-lavoro")]:
             await B.goto(URL + r)
             await B.wait_for_timeout(300)

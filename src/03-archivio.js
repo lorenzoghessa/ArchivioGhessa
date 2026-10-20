@@ -178,6 +178,20 @@ async function contenutoAllegato(a) {
 
 /* --- Unione di due archivi: per ogni elemento vince la modifica più recente --- */
 const LISTE = ['persone', 'voci', 'allegati', 'aree', 'registro'];
+/* Un compito può essere aggiornato insieme dalla pagina e da Claude: gli aggiornamenti si sommano, letto è il più recente.
+   Stessa regola in strumenti/archivio.py (unisci_compito). */
+function unisciCompito(a, b) {
+  if (!a || !b || a.canc || b.canc || a.tipo !== 'compito' || b.tipo !== 'compito') return null;
+  const vince = (b.agg || '') > (a.agg || '') ? b : a;
+  const visti = new Map();
+  for (const x of [...(a.aggiornamenti || []), ...(b.aggiornamenti || [])]) visti.set(`${x.quando}|${x.chi}|${x.testo}`, x);
+  const agg = [...visti.values()].sort((x, y) => (x.quando || '').localeCompare(y.quando || ''));
+  const letto = [a.letto, b.letto].filter(Boolean).sort().pop();
+  const out = { ...vince, aggiornamenti: agg };
+  if (letto) out.letto = letto;
+  return out;
+}
+const stessoCompito = (x, y) => x.agg === y.agg && (x.letto || '') === (y.letto || '') && (x.aggiornamenti || []).length === (y.aggiornamenti || []).length;
 function unisci(locale, remoto) {
   let daRemoto = 0, daLocale = 0;
   const out = { schema: SCHEMA, meta: { creato: locale.meta.creato < remoto.meta.creato ? locale.meta.creato : remoto.meta.creato, aggiornato: adesso() } };
@@ -187,7 +201,9 @@ function unisci(locale, remoto) {
     for (const r of remoto[nome] || []) {
       visti.add(r.id);
       const l = m.get(r.id);
-      if (!l || (r.agg || '') > (l.agg || '')) { m.set(r.id, r); daRemoto++; }
+      const comp = nome === 'voci' ? unisciCompito(l, r) : null;
+      if (comp) { if (!stessoCompito(comp, l)) { m.set(r.id, comp); daRemoto++; } if (!stessoCompito(comp, r)) daLocale++; }
+      else if (!l || (r.agg || '') > (l.agg || '')) { m.set(r.id, r); daRemoto++; }
       else if ((l.agg || '') > (r.agg || '')) daLocale++;
     }
     for (const id of m.keys()) if (!visti.has(id)) daLocale++;

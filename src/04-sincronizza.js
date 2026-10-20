@@ -5,6 +5,7 @@
      garmin/*.csv         dati del dispositivo, scritti ogni notte dall'automazione (sola lettura per la pagina)
      garmin/stato.json    esito dell'ultimo scaricamento
      rapporti/*.md        rapporti periodici scritti da Claude (sola lettura per la pagina)
+     lavoro/stato/cose-da-fare.md  cose aperte tenute da Claudio, l'assistente di lavoro (sola lettura)
    Sul dispositivo tutto resta cifrato con la frase segreta, token compreso. */
 const GH = 'https://api.github.com';
 const FILE_ARCHIVIO = 'archivio.json';
@@ -151,6 +152,9 @@ async function leggiEsterni(g) {
     E.rapporti[f.name] = { sha: f.sha, testo: await ghLeggiTesto(g, 'rapporti/' + f.name) }; cambiato = true;
   }
   for (const n of Object.keys(E.rapporti)) if (!nomi.has(n)) { delete E.rapporti[n]; cambiato = true; }
+  const cf = (await elencoCartella(g, 'lavoro/stato')).find(x => x.name === 'cose-da-fare.md');
+  if (!cf && E.coseDaFare) { delete E.coseDaFare; cambiato = true; }
+  else if (cf && (!E.coseDaFare || E.coseDaFare.sha !== cf.sha)) { E.coseDaFare = { sha: cf.sha, testo: await ghLeggiTesto(g, 'lavoro/stato/cose-da-fare.md') }; cambiato = true; }
   if (cambiato) ricostruisciEsterni();
   return cambiato;
 }

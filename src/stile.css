@@ -241,3 +241,19 @@ i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)} i.g-bar
 }
 @media (prefers-reduced-motion:no-preference){.btn,.menu a,.scheda{transition:border-color .12s,background-color .12s}}
 @media print{.barra,.menu,.azioni,.btn{display:none!important}#vista{border:0}}
+
+/* compiti e aggiornamenti */
+.nuovo-compito{margin:.2rem 0 .9rem}
+.nuovo-compito .entro{display:inline-flex;align-items:center;gap:.4rem}
+.nuovo-compito select,.nuovo-compito input{font-size:.93rem;padding:.35rem .5rem}
+.compito .compito-titolo{font-weight:600;color:inherit;text-decoration:none}
+.compito .compito-titolo:hover{text-decoration:underline}
+.agg{list-style:none;margin:.35rem 0 0;padding:0 0 0 .7rem;border-left:2px solid var(--linea)}
+.agg-voce{display:flex;flex-direction:column;font-size:.93rem;padding:.15rem 0}
+.agg-voce.da-claude{border-left:2px solid var(--marca);margin-left:calc(-.7rem - 2px);padding-left:.7rem}
+.agg-chi{font-size:.8rem;color:var(--tenue)}
+.compito-stato{margin-top:.2rem;min-height:0}
+.compito-stato:empty{display:none}
+details.scrivi,details.storia{border:0;padding:.2rem 0 0}
+details.scrivi summary,details.storia summary{cursor:pointer;color:var(--marca);font-size:.88rem;width:max-content}
+details.scrivi textarea{margin-top:.4rem}

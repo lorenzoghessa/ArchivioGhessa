@@ -77,11 +77,19 @@ const TIPO_LIBERO = { nome: 'Voce', plur: 'Voci', titolo: v => v.titolo, colonne
 const TIPO_CONSIGLIO = { nome: 'Consiglio', plur: 'Consigli', titolo: v => v.titolo, colonne: ['priorita', 'titolo', 'stato', 'data'], campi: [
   c('titolo', 'Consiglio', 'testo', { obbl: true }), c('data', 'Data', 'data', { obbl: true }), c('priorita', 'Priorità (1 = il più importante)', 'numero'),
   c('azione', 'Cosa fare', 'lungo'), c('perche', 'Perché, in base ai dati', 'lungo'), c('stato', 'Stato', 'scelta', { opzioni: ['da fare', 'in corso', 'fatto', 'scartato'] }), c('origine', 'Scritto da')] };
+/* Compiti: presenti in ogni cartella. Lorenzo li scrive dalla pagina, Claude li legge e risponde.
+   aggiornamenti: [{ quando, chi: 'Lorenzo' | 'Claude', testo }]; letto: quando Claude li ha letti l'ultima volta;
+   rif: id di una voce di un'altra lista (per esempio c-014 delle cose da fare di Claudio). */
+const STATI_COMPITO = ['da fare', 'in corso', 'in attesa', 'fatto', 'annullato'];
+const TIPO_COMPITO = { nome: 'Compito', plur: 'Compiti', titolo: v => v.titolo, colonne: ['scadenza', 'titolo', 'chi', 'stato'], campi: [
+  c('titolo', 'Cosa', 'testo', { obbl: true }), c('data', 'Scritto il', 'data', { obbl: true }), c('chi', 'Chi lo fa', 'scelta', { opzioni: ['Lorenzo', 'Claude'] }),
+  c('stato', 'Stato', 'scelta', { opzioni: STATI_COMPITO }), c('scadenza', 'Entro il', 'data'), c('priorita', 'Priorità', 'scelta', { opzioni: ['1', '2', '3'] }),
+  c('nota', 'Dettagli', 'lungo'), c('rif', 'Collegato a')] };
 const AREA_SISTEMA = { id: 'sistema', nome: 'Scadenze', tipi: { scadenza: TIPO_SCADENZA } };
 
 function aree() {
   const extra = S.A.aree.filter(a => !a.canc).map(a => ({ id: a.id, nome: a.nome, libera: true, tipi: { voce: TIPO_LIBERO } }));
-  return [...AREE_BASE, ...extra].map(a => ({ ...a, tipi: { ...a.tipi, consiglio: TIPO_CONSIGLIO } }));
+  return [...AREE_BASE, ...extra].map(a => ({ ...a, tipi: { ...a.tipi, compito: TIPO_COMPITO, consiglio: TIPO_CONSIGLIO } }));
 }
 const area = id => (id === 'sistema' ? AREA_SISTEMA : aree().find(a => a.id === id));
 const tipoDef = (a, t) => (area(a) || { tipi: {} }).tipi[t];
