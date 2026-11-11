@@ -19,15 +19,16 @@ const ultimoValore = (metrica, tipo = 'corpo') => { const l = serieMetrica(metri
 
 function componentiSalute() {
   const c = {};
-  /* Esami: quota dei parametri nell'intervallo all'ultima misura; i parametri chiave pesano tre volte. */
+  /* Esami: quota dei parametri nell'intervallo all'ultima misura; i parametri chiave pesano tre volte.
+     Dall'11/11/2026 un valore fuori intervallo già valutato dal medico (campo valutato) non toglie punti. */
   const mis = voci('salute', 'misura').sort(perData);
   if (mis.length) {
     const ultimi = [...raggruppa(mis, v => v.parametro).values()].map(l => l[l.length - 1]);
-    let tot = 0, ok = 0; const fuori = [];
-    for (const v of ultimi) { const w = PARAMETRI_CHIAVE.has(v.parametro) ? 3 : 1; tot += w; if (fuoriIntervallo(v)) fuori.push(v.parametro); else ok += w; }
+    let tot = 0, ok = 0; const fuori = [], valutati = ultimi.filter(v => fuoriIntervallo(v) && v.valutato).length;
+    for (const v of ultimi) { const w = PARAMETRI_CHIAVE.has(v.parametro) ? 3 : 1; tot += w; if (daSeguire(v)) fuori.push(v.parametro); else ok += w; }
     const ultimo = mis[mis.length - 1].data;
     c.esami = { nome: 'Esami del sangue', punti: (ok / tot) * 100, eta: giorniDa(ultimo),
-      testo: `${plurale(ultimi.length - fuori.length, 'parametro', 'parametri')} su ${ultimi.length} nell'intervallo all'ultima misura` + (fuori.length ? `; fuori: ${fuori.slice(0, 4).join(', ')}${fuori.length > 4 ? ` e altri ${fuori.length - 4}` : ''}` : '') + `. Ultimo prelievo ${fa(giorniDa(ultimo))}.` };
+      testo: `${plurale(ultimi.length - fuori.length, 'parametro', 'parametri')} su ${ultimi.length} nell'intervallo all'ultima misura` + (valutati ? ` (${valutati} fuori intervallo ma già ${valutati === 1 ? 'valutato' : 'valutati'} dal medico)` : '') + (fuori.length ? `; fuori: ${fuori.slice(0, 4).join(', ')}${fuori.length > 4 ? ` e altri ${fuori.length - 4}` : ''}` : '') + `. Ultimo prelievo ${fa(giorniDa(ultimo))}.` };
   }
   /* Sonno: media del punteggio del sonno Garmin degli ultimi 14 giorni (almeno 5 notti). */
   const so = mediaRecente('Punteggio del sonno', 14), ore = mediaRecente('Sonno totale', 14);

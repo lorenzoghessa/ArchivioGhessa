@@ -257,3 +257,11 @@ i.g-barra1{background:var(--serie)} i.g-barra2{background:var(--serie2)} i.g-bar
 details.scrivi,details.storia{border:0;padding:.2rem 0 0}
 details.scrivi summary,details.storia summary{cursor:pointer;color:var(--marca);font-size:.88rem;width:max-content}
 details.scrivi textarea{margin-top:.4rem}
+/* Traguardi */
+.traguardo-pista{display:block;height:6px;background:var(--linea2);border-radius:3px;margin:.35rem 0 .15rem;overflow:hidden}
+.traguardo-barra{display:block;height:100%;border-radius:3px;background:var(--ok)}
+.traguardo-barra.vuota{background:var(--attenzione)} .traguardo-barra.ritardo{background:var(--critico)}
+details.traguardi-gruppo{padding:.55rem 0}
+details.traguardi-gruppo:last-of-type{border-bottom:0}
+details.traguardi-gruppo>summary{cursor:pointer}
+details.traguardi-gruppo[open]>summary{margin-bottom:.2rem}

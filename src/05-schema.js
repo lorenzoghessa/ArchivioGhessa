@@ -11,7 +11,7 @@ const AREE_BASE = [
       c('data', 'Data del prelievo', 'data', { obbl: true }), c('parametro', 'Parametro', 'testo', { obbl: true, suggerisci: true }), c('categoria', 'Categoria', 'scelta', { opzioni: CAT_ESAMI }),
       c('valore', 'Valore', 'numero'), c('testo', 'Risultato a parole (es. Negativo)'), c('unita', 'Unità di misura', 'testo', { suggerisci: true }),
       c('rif_min', 'Riferimento minimo', 'numero'), c('rif_max', 'Riferimento massimo', 'numero'), c('rif_testo', 'Riferimento come scritto sul referto'),
-      c('fuori', 'Segnalato fuori intervallo dal laboratorio', 'si_no'), c('laboratorio', 'Laboratorio', 'testo', { suggerisci: true }), c('doc', 'Referto di origine', 'allegato'), c('nota', 'Nota', 'lungo')] },
+      c('fuori', 'Segnalato fuori intervallo dal laboratorio', 'si_no'), c('valutato', 'Già valutato dal medico: non conta tra i valori da seguire', 'si_no'), c('laboratorio', 'Laboratorio', 'testo', { suggerisci: true }), c('doc', 'Referto di origine', 'allegato'), c('nota', 'Nota', 'lungo')] },
     visita: { nome: 'Visita o referto', plur: 'Visite e referti', titolo: v => v.specialista, colonne: ['data', 'specialista', 'struttura', 'conclusioni'], campi: [
       c('data', 'Data', 'data', { obbl: true }), c('specialista', 'Specialista o tipo di esame', 'testo', { obbl: true }), c('struttura', 'Struttura'), c('motivo', 'Motivo'),
       c('conclusioni', 'Conclusioni', 'lungo'), c('indicazioni', 'Indicazioni ricevute', 'lungo'), c('doc', 'Referto di origine', 'allegato')] },
@@ -85,11 +85,17 @@ const TIPO_COMPITO = { nome: 'Compito', plur: 'Compiti', titolo: v => v.titolo, 
   c('titolo', 'Cosa', 'testo', { obbl: true }), c('data', 'Scritto il', 'data', { obbl: true }), c('chi', 'Chi lo fa', 'scelta', { opzioni: ['Lorenzo', 'Claude'] }),
   c('stato', 'Stato', 'scelta', { opzioni: STATI_COMPITO }), c('scadenza', 'Entro il', 'data'), c('priorita', 'Priorità', 'scelta', { opzioni: ['1', '2', '3'] }),
   c('nota', 'Dettagli', 'lungo'), c('rif', 'Collegato a')] };
+/* Traguardi: presenti in ogni cartella. Un valore di oggi, un obiettivo e uno stato; li calcola Claude dai dati
+   (strumenti/quadro.py nel repository dei dati) e li riscrive a ogni verifica. avanzamento: da 0 a 100, facoltativo. */
+const STATI_TRAGUARDO = ['in linea', 'vicino', 'fuori', 'senza dati'];
+const TIPO_TRAGUARDO = { nome: 'Traguardo', plur: 'Traguardi', titolo: v => v.titolo, colonne: ['titolo', 'valore', 'obiettivo', 'stato', 'data'], campi: [
+  c('titolo', 'Traguardo', 'testo', { obbl: true }), c('data', 'Aggiornato il', 'data', { obbl: true }), c('valore', 'Oggi'), c('obiettivo', 'Obiettivo'),
+  c('stato', 'Stato', 'scelta', { opzioni: STATI_TRAGUARDO }), c('avanzamento', 'Avanzamento da 0 a 100', 'numero'), c('nota', 'Come si misura', 'lungo'), c('ordine', 'Posizione nell\'elenco', 'numero')] };
 const AREA_SISTEMA = { id: 'sistema', nome: 'Scadenze', tipi: { scadenza: TIPO_SCADENZA } };
 
 function aree() {
   const extra = S.A.aree.filter(a => !a.canc).map(a => ({ id: a.id, nome: a.nome, libera: true, tipi: { voce: TIPO_LIBERO } }));
-  return [...AREE_BASE, ...extra].map(a => ({ ...a, tipi: { ...a.tipi, compito: TIPO_COMPITO, consiglio: TIPO_CONSIGLIO } }));
+  return [...AREE_BASE, ...extra].map(a => ({ ...a, tipi: { ...a.tipi, compito: TIPO_COMPITO, consiglio: TIPO_CONSIGLIO, traguardo: TIPO_TRAGUARDO } }));
 }
 const area = id => (id === 'sistema' ? AREA_SISTEMA : aree().find(a => a.id === id));
 const tipoDef = (a, t) => (area(a) || { tipi: {} }).tipi[t];
@@ -117,6 +123,9 @@ function fuoriIntervallo(v) {
   if (typeof v.valore !== 'number') return false;
   return (typeof v.rif_min === 'number' && v.valore < v.rif_min) || (typeof v.rif_max === 'number' && v.valore > v.rif_max);
 }
+/* Fuori intervallo e non ancora valutato dal medico: è quello che conta per l'indice e per "da tenere d'occhio". */
+const daSeguire = v => fuoriIntervallo(v) && !v.valutato;
+const testoValutati = n => (n ? (n === 1 ? '; un altro già valutato dal medico' : `; altri ${n} già valutati dal medico`) : '');
 function testoRif(v) {
   if (v.rif_testo) return v.rif_testo;
   const a = typeof v.rif_min === 'number', b = typeof v.rif_max === 'number';

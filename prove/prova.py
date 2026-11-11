@@ -57,6 +57,13 @@ FINANZE = [
     _fin("g-4", "finanze", "budget", data="2026-09-01", voce="Abbigliamento", tetto=100, speso=40),
     _fin("l-1", "lavoro", "incasso", data="2026-10-01", committente="Cliente prova", descrizione="Fattura di settembre", valore=6000, stato="atteso"),
 ]
+# Traguardi: li scrive strumenti/quadro.py nel repository dei dati; la pagina li mostra nel quadro generale e in ogni cartella.
+TRAGUARDI = [
+    _fin("g-salute-passi", "salute", "traguardo", data="2026-10-01", titolo="Passi al giorno", valore="8.200", obiettivo="9.000", stato="vicino", avanzamento=91, nota="Media di 4 settimane", ordine=2),
+    _fin("g-salute-sonno", "salute", "traguardo", data="2026-10-01", titolo="Notti con almeno 7 ore", valore="3 su 7", obiettivo="6 su 7", stato="fuori", avanzamento=50, nota="Ultime 4 settimane", ordine=1),
+    _fin("g-salute-esami", "salute", "traguardo", data="2026-10-01", titolo="Esami annuali", valore="fatti", obiettivo="uno l'anno", stato="in linea", ordine=3),
+    _fin("g-finanze-buste", "finanze", "traguardo", data="2026-10-01", titolo="Buste del mese", valore="290 € su 300 €", obiettivo="al massimo 300 €", stato="in linea", avanzamento=100, nota="Mese di settembre", ordine=1),
+]
 
 
 def repo_iniziale():
@@ -68,6 +75,7 @@ def repo_iniziale():
              {"id": "m-1", "area": "salute", "tipo": "misura", "persona": "mario", "data": "2026-01-10", "categoria": "Rene", "parametro": "Creatinina", "valore": 1.3, "unita": "mg/dL", "rif_min": 0.7, "rif_max": 1.2, "fuori": True, "laboratorio": "Lab A", "doc": "d-1", "creato": T, "agg": T},
              {"id": "m-2", "area": "salute", "tipo": "misura", "persona": "mario", "data": "2026-05-10", "categoria": "Rene", "parametro": "Creatinina", "valore": 1.1, "unita": "mg/dL", "rif_min": 0.7, "rif_max": 1.2, "laboratorio": "Lab A", "creato": T, "agg": T},
              {"id": "m-3", "area": "salute", "tipo": "misura", "persona": "mario", "data": "2026-05-10", "categoria": "Lipidi", "parametro": "Colesterolo LDL", "valore": 160, "unita": "mg/dL", "rif_max": 115, "creato": T, "agg": T},
+             {"id": "m-4", "area": "salute", "tipo": "misura", "persona": "mario", "data": "2026-05-10", "categoria": "Ferro e vitamine", "parametro": "Ferritina", "valore": 420, "unita": "µg/L", "rif_min": 30, "rif_max": 400, "valutato": True, "creato": T, "agg": T},
              {"id": "a-1", "area": "salute", "tipo": "allenamento", "persona": "mario", "data": (oggi - dt.timedelta(days=3)).isoformat(), "scheda": "Scheda prova", "seduta": "Sessione 1", "serie": 18, "dettaglio": "Squat 5×5 @8, 100 kg", "stimato": True, "creato": T, "agg": T},
              {"id": "x-1", "area": "salute", "tipo": "massimale", "persona": "mario", "data": "2026-05-01", "esercizio": "Squat", "valore": 140, "creato": T, "agg": T},
              {"id": "k-1", "area": "salute", "tipo": "consiglio", "persona": "mario", "data": "2026-05-11", "titolo": "Secondo consiglio", "priorita": 2, "stato": "da fare", "creato": T, "agg": T},
@@ -80,7 +88,7 @@ def repo_iniziale():
               "aggiornamenti": [{"quando": "2026-05-11T08:00:00.000Z", "chi": "Lorenzo", "testo": "Ci penso io."}, {"quando": "2026-05-12T09:00:00.000Z", "chi": "Claude", "testo": "Aggiungi ApoB e Lp(a)."}], "creato": T, "agg": T},
              {"id": "t-2", "area": "salute", "tipo": "compito", "persona": "mario", "data": "2026-05-11", "titolo": "Compito chiuso", "chi": "Claude", "stato": "fatto", "letto": T, "aggiornamenti": [], "creato": T, "agg": T},
              {"id": "o-1", "area": "salute", "tipo": "osservazione", "persona": "mario", "data": "2026-05-11", "titolo": "LDL alto", "testo": "Da discutere col medico.", "priorita": "alta", "stato": "aperta", "creato": T, "agg": T},
-         ] + FINANZE,
+         ] + FINANZE + TRAGUARDI,
          "allegati": [{"id": "d-1", "nome": "referto.pdf", "mime": "application/pdf", "dim": 20, "area": "salute", "persona": "mario", "data": "2026-01-10", "stato": "elaborato", "file": "documenti/d-1.pdf", "creato": T, "agg": T}],
          "aree": [], "registro": []}
     righe = ["data;tipo;metrica;valore;unita"]
@@ -189,13 +197,21 @@ async def main():
         await A.click("text=Collega e apri")
         await A.wait_for_selector("h1:has-text('Quadro generale')")
         await A.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await A.evaluate("S.A.voci.length") == 14 + len(FINANZE), "archivio scaricato dal repository")
+        controlla(await A.evaluate("S.A.voci.length") == 15 + len(FINANZE) + len(TRAGUARDI), "archivio scaricato dal repository")
         controlla(await A.evaluate("S.estVoci.length") == 31, "dati Garmin letti dal repository (31 righe)")
         ind = await A.evaluate("(i => i && {v: i.valore, k: Object.keys(i.componenti)})(indiceSalute())")
         controlla(ind and 0 < ind["v"] <= 100 and sorted(ind["k"]) == ["attivita", "corpo", "esami", "recupero", "sonno"], f"indice di salute con cinque componenti {ind}")
         controlla(await A.locator(".scheda:has-text('Indice di salute')").count() == 1 and await A.locator("section:has(h2:has-text('Consigli principali')) li").count() == 2, "quadro generale: indice e consigli principali")
         controlla(await A.locator("text=Rapporto di settembre 2026").count() > 0, "ultimo rapporto in prima pagina")
         controlla(await A.locator("text=Scaricamento Garmin non ancora attivo").count() == 0, "Garmin risulta attivo")
+        tr = A.locator("section.traguardi-pannello")
+        gruppi = await tr.locator("details summary strong").all_inner_texts()
+        controlla(await tr.count() == 1 and gruppi == ["Salute e longevità", "Finanze"] and await tr.locator(".dato:has-text('Fuori strada') .dato-valore").inner_text() == "1" and await tr.locator(".dato:has-text('In linea') .dato-valore").inner_text() == "2",
+                  f"quadro generale: traguardi per cartella con il conteggio per stato {gruppi}")
+        controlla(await tr.locator("details summary:has-text('1 fuori strada, 1 vicino, 1 in linea')").count() == 1 and not await tr.locator("li.traguardo").first.is_visible(), "quadro generale: riga di sintesi per cartella, elenco chiuso")
+        await tr.locator("details summary").first.click()
+        primi_t = await tr.locator("details").first.locator("li.traguardo strong").all_inner_texts()
+        controlla(primi_t == ["Notti con almeno 7 ore", "Passi al giorno", "Esami annuali"] and await tr.locator("li.traguardo").first.is_visible(), f"quadro generale: traguardi fuori strada per primi {primi_t}")
         await scatta(A, "02-quadro")
         await A.goto(URL + "#/rapporti")
         controlla(await A.locator("article table td:has-text('8.500')").count() == 1 and await A.locator("article strong:has-text('tutto stabile')").count() == 1, "rapporto mostrato con tabella e grassetto")
@@ -204,8 +220,17 @@ async def main():
         await scatta(A, "03-salute")
         controlla(await A.locator("section:has(h2:has-text('Dati del dispositivo')) .grafico svg").count() == 1, "grafico dei dati Garmin")
         controlla(await A.locator("section.indice svg.anello").count() == 1 and await A.locator("section.indice .componente").count() == 5, "situazione del corpo: anello e cinque componenti")
+        occhio = A.locator("section:has(h2:has-text('Da tenere'))")
+        esami_txt = await A.evaluate("componentiSalute().esami.testo")
+        controlla(await occhio.locator("> div.scorri tbody tr").count() == 1 and await occhio.locator("details.valutati tbody tr:has-text('Ferritina')").count() == 1 and await A.locator(".dato:has-text('Fuori intervallo') .dato-valore").first.inner_text() == "1"
+                  and await A.locator(".dato:has-text('un altro già valutato dal medico')").count() == 1 and "1 fuori intervallo ma già valutato dal medico" in esami_txt and "Ferritina" not in esami_txt.split("fuori:")[-1],
+                  f"salute: un valore già valutato dal medico non conta tra quelli da seguire ({esami_txt})")
         primi = await A.locator("section:has(h2:has-text('Consigli in ordine')) li strong").all_inner_texts()
         controlla(primi == ["Primo consiglio", "Secondo consiglio"], f"consigli ordinati per priorità, senza quelli seguiti {primi}")
+        tr = A.locator("section.traguardi-pannello")
+        larghezza = await tr.locator("li.traguardo:has-text('Notti con almeno 7 ore') .traguardo-barra").evaluate("e => e.style.width + ' ' + e.className")
+        controlla(await tr.locator("li.traguardo").count() == 3 and larghezza == "50% traguardo-barra ritardo" and await tr.locator("li.traguardo:has-text('Ultime 4 settimane')").count() == 1 and await tr.locator("li.traguardo:has-text('Esami annuali') .traguardo-pista").count() == 0,
+                  f"salute: traguardi con stato, barra e modo di misurarli ({larghezza})")
         sez = A.locator("section:has(h2:has-text('Allenamenti'))")
         controlla(await sez.locator(".grafico svg").count() == 1 and await sez.locator("td:has-text('Scheda prova')").count() == 1 and await sez.locator("td:has-text('140')").count() == 1 and await sez.locator("td:has-text('sì')").count() == 1, "allenamenti: grafico, sedute e massimali")
         # --- finanze: quadro in testa con tutti i conti; pulsante che nasconde gli importi su ogni pagina
@@ -221,6 +246,7 @@ async def main():
         controlla(await bud.locator(".busta").count() == 2 and await bud.locator("h2:has-text('settembre 2026')").count() == 1 and await bud.locator(".busta:has-text('Oltre di 50')").count() == 1 and await bud.locator(".stato:has-text('Dentro le buste')").count() == 1 and await bud.locator("text=2 su 2").count() == 1,
                   "finanze: buste dell'ultimo mese contro il tetto")
         controlla(await A.evaluate("[...document.querySelectorAll('#vista section h2')].map(x => x.textContent).indexOf('Obiettivi di spesa, settembre 2026')") == 0, "finanze: le buste vengono subito dopo il quadro")
+        controlla(await A.locator("section.traguardi-pannello li.traguardo:has-text('Buste del mese') .soldi").count() == 3, "finanze: gli importi dei traguardi si possono nascondere")
         await scatta(A, "04-finanze")
         await A.click("#riservato")
         riserv = await A.evaluate("({cl: document.documentElement.classList.contains('riservato'), n: document.querySelectorAll('#vista .soldi').length, netto: !!document.querySelector('section.quadro .dato.grande .soldi'), filtro: getComputedStyle(document.querySelector('#vista .soldi')).filter, mem: localStorage.getItem('archivio-riservato'), asse: getComputedStyle(document.querySelector('.grafico-soldi .g-y')).visibility})")
@@ -281,7 +307,7 @@ async def main():
         await collega(B)
         await B.wait_for_selector("#vista")
         await B.wait_for_function("S.sync.stato === 'ok'")
-        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 16 + len(FINANZE), "il telefono vede gli stessi dati")
+        controlla(await B.evaluate("S.A.voci.filter(v=>!v.canc).length") == 17 + len(FINANZE) + len(TRAGUARDI), "il telefono vede gli stessi dati")
         await B.evaluate("metti({area:'salute',tipo:'corpo',persona:'mario',data:'2026-10-07',metrica:'Pressione sistolica',valore:120,unita:'mmHg'})")
         await A.evaluate("metti({area:'viaggi',tipo:'viaggio',persona:'mario',data:'2027-04-01',titolo:'Tokyo'})")
         await A.evaluate("togli('voci','o-1')")

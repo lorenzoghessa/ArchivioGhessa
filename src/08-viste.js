@@ -27,14 +27,14 @@ function vistaCasa() {
 
   const mis = voci('salute', 'misura');
   const perPar = [...raggruppa(mis.sort(perData), v => v.parametro).values()].map(l => l[l.length - 1]);
-  const nFuori = perPar.filter(fuoriIntervallo).length;
+  const nFuori = perPar.filter(daSeguire).length, nValutati = perPar.filter(v => fuoriIntervallo(v) && v.valutato).length;
   const ultimoPrelievo = mis.length ? mis[mis.length - 1].data : null;
   const viaggi = voci('viaggi', 'viaggio'), prossimo = viaggi.filter(v => v.data > oggi()).sort(perData)[0];
   const prog = voci('progetti', 'progetto');
   const lav = incassiLavoro(), attesi = voci('lavoro', 'incasso').filter(v => v.stato !== 'incassato');
   const schede = {
     lavoro: lav.mesi.length || attesi.length ? [lav.mesi.length ? dato('Incassi da lavoro', fmtEuro(lav.totale), `media ${fmtEuro(lav.media)} al mese`) : null, attesi.length ? dato('Incassi attesi', fmtEuro(somma(attesi.map(v => v.valore)))) : null] : null,
-    salute: mis.length ? [(ind => (ind ? dato('Indice di salute', `${Math.round(ind.valore)} su 100`, `${fascia(ind.valore).testo}, affidabilità ${ind.affidabilita}`) : null))(indiceSalute()), dato('Fuori intervallo all\'ultima misura', nFuori, `su ${perPar.length} parametri seguiti`, nFuori ? 'allerta' : '')] : null,
+    salute: mis.length ? [(ind => (ind ? dato('Indice di salute', `${Math.round(ind.valore)} su 100`, `${fascia(ind.valore).testo}, affidabilità ${ind.affidabilita}`) : null))(indiceSalute()), dato('Fuori intervallo all\'ultima misura', nFuori, `su ${perPar.length} parametri seguiti` + testoValutati(nValutati), nFuori ? 'allerta' : '')] : null,
     finanze: voci('finanze').length ? [dato('Disponibilità finanziaria', fmtEuro(totaleFinanze(voci('finanze', 'saldo')))), (b => { if (!b.mesi.length) return null; const m = b.mesi[b.mesi.length - 1], x = b.del(m), t = somma(x.map(v => v.speso)), tt = somma(x.map(v => v.tetto)); return dato('Buste del mese', `${fmtEuro(t)} su ${fmtEuro(tt)}`, nomeMese(m), t > tt + 0.5 ? 'allerta' : ''); })(budgetMesi())] : null,
     patrimonio: voci('patrimonio').length || voci('finanze', 'saldo').length ? [dato('Patrimonio netto', fmtEuro(patrimonioNetto()), 'beni e disponibilità meno debiti')] : null,
     viaggi: viaggi.length ? [dato('Viaggi registrati', viaggi.length, prossimo ? `Prossimo: ${prossimo.titolo}, ${fmtData(prossimo.data)}` : '')] : null,
@@ -44,6 +44,7 @@ function vistaCasa() {
     h('div', { class: 'testa' }, h('div', {}, h('h1', {}, 'Quadro generale'), h('p', { class: 'sotto' }, new Date().toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })))),
     pannello('Da fare', daFare.length ? h('ul', { class: 'elenco' }, daFare.map(x => h('li', {}, h('a', { href: x.href }, stato(x.tipo, x.testo)), h('div', { class: 'elenco-nota' }, x.nota)))) : h('p', { class: 'attenuato' }, 'Niente in sospeso.')),
     compitiCasa(),
+    traguardiCasa(),
     consigliPrincipali(),
     h('div', { class: 'griglia' }, aree().map(a => h('a', { class: 'scheda', href: '#/a/' + a.id }, h('h3', {}, a.nome),
       schede[a.id] || (a.libera && voci(a.id).length ? dato('Voci', voci(a.id).length) : h('p', { class: 'attenuato' }, 'Ancora vuota.'))))),
@@ -135,6 +136,7 @@ function vistaArea(a) {
     pannelloCompiti(a.id),
     a.id === 'lavoro' ? pannelloClaudio() : null,
     pannelloConsigli(a.id),
+    pannelloTraguardi(a.id),
     cr(a),
     a.id === 'progetti' ? null : pannello('Sezioni di questa cartella', h('div', { class: 'sezioni' }, Object.entries(a.tipi).map(([k, d]) => h('div', { class: 'sezione' },
       h('a', { href: `#/a/${a.id}/${k}` }, d.plur), h('span', { class: 'attenuato' }, ` ${voci(a.id, k).length}`), btn('Aggiungi', () => apriModulo(a.id, k), 'piccolo'))))));
@@ -158,7 +160,7 @@ function apriParametro(nome) {
 function rigaParametro(l) {
   const u = l[l.length - 1], num = l.filter(v => typeof v.valore === 'number'), f = fuoriIntervallo(u);
   return h('tr', { tabindex: 0, onclick: () => apriParametro(u.parametro), onkeydown: e => { if (e.key === 'Enter') apriParametro(u.parametro); } },
-    h('td', {}, u.parametro), h('td', { class: 'num destra nonspezza' + (f ? ' fuori' : '') }, valoreTesto(u), u.unita && typeof u.valore === 'number' ? h('span', { class: 'unita' }, ' ' + u.unita) : null, f ? h('span', { class: 'segno-fuori', title: 'Fuori intervallo' }, ' ◆') : null),
+    h('td', {}, u.parametro), h('td', { class: 'num destra nonspezza' + (f ? ' fuori' : '') }, valoreTesto(u), u.unita && typeof u.valore === 'number' ? h('span', { class: 'unita' }, ' ' + u.unita) : null, f ? h('span', { class: 'segno-fuori', title: u.valutato ? 'Fuori intervallo, già valutato dal medico' : 'Fuori intervallo' }, ' ◆') : null),
     h('td', { class: 'rif' }, testoRif(u)), h('td', {}, fmtData(u.data)), h('td', {}, scintilla(num.map(v => v.valore), f)));
 }
 function pannelloSerie(titolo, lista, descrVuoto, azione) {
@@ -188,21 +190,24 @@ function pannelloAllenamenti() {
   if (ma.length) kids.push(h('h3', {}, 'Massimali'), tabella('salute', 'massimale', ma, { filtro: false }));
   return pannello('Allenamenti', kids);
 }
+const valutatiDalMedico = (l, testa) => (l.length ? h('details', { class: 'valutati' }, h('summary', {}, 'Fuori intervallo ma già valutati dal medico', h('span', { class: 'attenuato' }, ` ${l.length}`)),
+  h('div', { class: 'scorri' }, h('table', { class: 'cliccabile' }, testa(), h('tbody', {}, l.map(rigaParametro)))),
+  h('p', { class: 'attenuato piccolo' }, 'Restano fuori dall\'intervallo del laboratorio, ma il medico li ha già giudicati: non tolgono punti all\'indice. Un valore nuovo fuori intervallo torna tra quelli da seguire.')) : null);
 function cruscottoSalute() {
   const mis = voci('salute', 'misura').sort(perData);
   const gruppi = [...raggruppa(mis, v => v.parametro).values()];
-  const fuori = gruppi.filter(l => fuoriIntervallo(l[l.length - 1]));
+  const fuori = gruppi.filter(l => daSeguire(l[l.length - 1])), valutati = gruppi.filter(l => fuoriIntervallo(l[l.length - 1]) && l[l.length - 1].valutato);
   const oss = voci('salute', 'osservazione').filter(o => o.stato !== 'chiusa').sort((a, b) => ['alta', 'media', 'bassa'].indexOf(a.priorita) - ['alta', 'media', 'bassa'].indexOf(b.priorita));
   const visite = voci('salute', 'visita');
   const perCat = raggruppa(gruppi, l => l[l.length - 1].categoria || 'Altro');
   const testaTab = () => h('thead', {}, h('tr', {}, h('th', {}, 'Parametro'), h('th', { class: 'destra' }, 'Ultimo valore'), h('th', {}, 'Riferimento'), h('th', {}, 'Data'), h('th', {}, 'Andamento')));
   return [
     mis.length ? h('div', { class: 'dati' },
-      dato('Fuori intervallo all\'ultima misura', fuori.length, `su ${gruppi.length} parametri seguiti`, fuori.length ? 'allerta' : ''),
+      dato('Fuori intervallo all\'ultima misura', fuori.length, `su ${gruppi.length} parametri seguiti` + testoValutati(valutati.length), fuori.length ? 'allerta' : ''),
       dato('Ultimo prelievo', fmtData(mis[mis.length - 1].data), fa(giorniDa(mis[mis.length - 1].data))),
       dato('Prelievi in archivio', new Set(mis.map(v => v.data)).size, `dal ${fmtData(mis[0].data)}`)) : null,
     mis.length ? pannello('Da tenere d\'occhio', fuori.length ? [h('div', { class: 'scorri' }, h('table', { class: 'cliccabile' }, testaTab(), h('tbody', {}, fuori.map(rigaParametro)))),
-      h('p', { class: 'attenuato piccolo' }, 'Sono i parametri il cui ultimo valore è fuori dall\'intervallo indicato dal laboratorio. È un aiuto alla lettura: il significato clinico lo stabilisce il medico.')] : h('p', {}, 'Tutti gli ultimi valori sono nell\'intervallo di riferimento.')) : pannello('Esami di laboratorio', vuoto('Nessun esame inserito. Puoi inserire i valori a mano, importare un file dati, oppure caricare intanto il PDF in Documenti.', btn('Aggiungi un valore', () => apriModulo('salute', 'misura'), 'primario'))),
+      h('p', { class: 'attenuato piccolo' }, 'Sono i parametri il cui ultimo valore è fuori dall\'intervallo indicato dal laboratorio. È un aiuto alla lettura: il significato clinico lo stabilisce il medico.'), valutatiDalMedico(valutati, testaTab)] : [h('p', {}, valutati.length ? 'Nessun valore nuovo da seguire.' : 'Tutti gli ultimi valori sono nell\'intervallo di riferimento.'), valutatiDalMedico(valutati, testaTab)]) : pannello('Esami di laboratorio', vuoto('Nessun esame inserito. Puoi inserire i valori a mano, importare un file dati, oppure caricare intanto il PDF in Documenti.', btn('Aggiungi un valore', () => apriModulo('salute', 'misura'), 'primario'))),
     pannello('Osservazioni e piano', oss.length ? h('ul', { class: 'elenco' }, oss.map(o => h('li', { class: 'cliccabile', tabindex: 0, onclick: () => apriModulo('salute', 'osservazione', o) }, h('div', { class: 'tra' }, h('strong', {}, o.titolo), h('span', { class: 'attenuato' }, [o.priorita ? 'priorità ' + o.priorita : '', fmtData(o.data)].filter(Boolean).join(', '))), h('div', { class: 'elenco-nota testo-lungo' }, o.testo || ''), o.origine ? h('div', { class: 'attenuato piccolo' }, 'Scritta da: ' + o.origine) : null))) : h('p', { class: 'attenuato' }, 'Nessuna osservazione aperta.'), h('div', { class: 'azioni' }, btn('Aggiungi osservazione', () => apriModulo('salute', 'osservazione', null, { stato: 'aperta' }), 'piccolo'))),
     mis.length ? pannello('Tutti i parametri per categoria', CAT_ESAMI.filter(k => perCat.has(k)).map(k => { const gl = perCat.get(k), nf = gl.filter(l => fuoriIntervallo(l[l.length - 1])).length; return h('details', { open: nf > 0 }, h('summary', {}, k, h('span', { class: 'attenuato' }, ` ${gl.length} parametri` + (nf ? `, ${nf} fuori intervallo` : ''))), h('div', { class: 'scorri' }, h('table', { class: 'cliccabile' }, testaTab(), h('tbody', {}, gl.sort((a, b) => a[0].parametro.localeCompare(b[0].parametro)).map(rigaParametro))))); })) : null,
     pannelloSerie('Dati del dispositivo', voci('salute', 'sensore'), 'Nessun dato del dispositivo. Arrivano da soli ogni notte una volta attivato lo scaricamento Garmin (Impostazioni). In alternativa puoi importare un CSV.', btn('Importa CSV', () => apriImportaCsv('salute', 'sensore'))),

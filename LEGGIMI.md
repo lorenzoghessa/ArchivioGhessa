@@ -58,7 +58,7 @@ Date `AAAA-MM-GG`, numeri come numeri JSON. Nell'esportazione i documenti posson
 
 | Area | Tipo | Campi |
 |---|---|---|
-| `salute` | `misura` | `data`, `parametro`, `categoria`, `valore` (numero) oppure `testo`, `unita`, `rif_min`, `rif_max`, `rif_testo`, `fuori` (segnalato dal laboratorio), `laboratorio`, `doc`, `nota` |
+| `salute` | `misura` | `data`, `parametro`, `categoria`, `valore` (numero) oppure `testo`, `unita`, `rif_min`, `rif_max`, `rif_testo`, `fuori` (segnalato dal laboratorio), `valutato` (fuori intervallo ma già giudicato dal medico: non conta per l'indice né tra i valori da seguire), `laboratorio`, `doc`, `nota` |
 | `salute` | `visita` | `data`, `specialista`, `struttura`, `motivo`, `conclusioni`, `indicazioni`, `doc` |
 | `salute` | `sensore` | `data`, `metrica`, `valore`, `unita`, `fonte` |
 | `salute` | `corpo` | `data`, `metrica`, `valore`, `unita` |
@@ -74,6 +74,7 @@ Date `AAAA-MM-GG`, numeri come numeri JSON. Nell'esportazione i documenti posson
 | `progetti` | `progetto` | `titolo`, `stato`, `obiettivo`, `contenuto` (Markdown), `versione`, `versioni` |
 | `sistema` | `scadenza` | `titolo`, `data`, `zona`, `ripeti` (mai, mensile, trimestrale, semestrale, annuale), `stato`, `nota` |
 | ogni area | `compito` | `titolo`, `data`, `chi` (Lorenzo, Claude), `stato` (da fare, in corso, in attesa, fatto, annullato), `scadenza`, `priorita`, `nota`, `rif`, `aggiornamenti` (`[{quando, chi, testo}]`), `letto`. Due versioni dello stesso compito si uniscono sommando gli aggiornamenti |
+| ogni area | `traguardo` | `titolo`, `data` (ultimo calcolo), `valore` (testo: la situazione di oggi), `obiettivo` (testo), `stato` (in linea, vicino, fuori, senza dati), `avanzamento` (0-100, facoltativo), `nota` (come si misura), `ordine`. Li genera `strumenti/quadro.py` nel repository dei dati (`generato: "quadro.py"`): rieseguire sostituisce |
 | cartella personalizzata | `voce` | `titolo`, `data`, `categoria`, `valore`, `unita`, `nota` |
 
 I dati Garmin non stanno in `archivio.json`: sono in `garmin/AAAA.csv` (`data;tipo;metrica;valore;unita`) e la pagina li mostra come voci `sensore` o `corpo` di sola lettura.
